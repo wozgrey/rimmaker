@@ -1,0 +1,320 @@
+{
+  "char_1791897475208": {
+    "skills": {
+      "射撃": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "格闘": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "社交": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "動物": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "医学": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "料理": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "建築": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "栽培": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "採掘": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "芸術": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "工芸": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "知力": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      }
+    },
+    "traits": [
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "avatar": "",
+    "faction": "",
+    "lastName": "霧雨",
+    "lastNameKana": "",
+    "firstName": "灰",
+    "firstNameKana": "",
+    "nickname": "カイ",
+    "gender": "",
+    "age": "",
+    "chronoAge": "",
+    "role": "",
+    "ideology": "",
+    "childhood": "",
+    "childhoodCustom": "",
+    "adulthood": "",
+    "adulthoodCustom": "",
+    "publicFace": "",
+    "coreBelief": "",
+    "gap": "",
+    "complex": "",
+    "motivation": "",
+    "childEnv": "",
+    "turningPoint": "",
+    "trauma": "",
+    "trigger": "",
+    "relParty": "",
+    "stressType": "",
+    "fightPattern": "",
+    "glitterAffinity": "",
+    "stressResist": "",
+    "anarchiaReaction": "",
+    "habit": "",
+    "likesDislikes": "",
+    "weakness": "",
+    "memo": "",
+    "id": "char_1791897475208"
+  },
+  "char_1791897853358": {
+    "skills": {
+      "射撃": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "格闘": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "社交": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "動物": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "医学": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "料理": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "建築": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "栽培": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "採掘": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "芸術": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "工芸": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "知力": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      }
+    },
+    "traits": [
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "avatar": "",
+    "faction": "",
+    "lastName": "",
+    "lastNameKana": "",
+    "firstName": "",
+    "firstNameKana": "",
+    "nickname": "新規キャラ",
+    "gender": "",
+    "age": "",
+    "chronoAge": "",
+    "role": "",
+    "ideology": "",
+    "childhood": "",
+    "childhoodCustom": "",
+    "adulthood": "",
+    "adulthoodCustom": "",
+    "publicFace": "",
+    "coreBelief": "",
+    "gap": "",
+    "complex": "",
+    "motivation": "",
+    "childEnv": "",
+    "turningPoint": "",
+    "trauma": "",
+    "trigger": "",
+    "relParty": "",
+    "stressType": "",
+    "fightPattern": "",
+    "glitterAffinity": "",
+    "stressResist": "",
+    "anarchiaReaction": "",
+    "habit": "",
+    "likesDislikes": "",
+    "weakness": "",
+    "memo": "",
+    "id": "char_1791897853358"
+  },
+  "char_1791897939286": {
+    "skills": {
+      "射撃": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "格闘": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "社交": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "動物": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "医学": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "料理": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "建築": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "栽培": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "採掘": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "芸術": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "工芸": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      },
+      "知力": {
+        "userVal": 0,
+        "bsMod": 0,
+        "passion": 0
+      }
+    },
+    "traits": [
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "avatar": "",
+    "faction": "",
+    "lastName": "",
+    "lastNameKana": "",
+    "firstName": "",
+    "firstNameKana": "",
+    "nickname": "新規キャラ",
+    "gender": "",
+    "age": "",
+    "chronoAge": "",
+    "role": "",
+    "ideology": "",
+    "childhood": "",
+    "childhoodCustom": "",
+    "adulthood": "",
+    "adulthoodCustom": "",
+    "publicFace": "",
+    "coreBelief": "",
+    "gap": "",
+    "complex": "",
+    "motivation": "",
+    "childEnv": "",
+    "turningPoint": "",
+    "trauma": "",
+    "trigger": "",
+    "relParty": "",
+    "stressType": "",
+    "fightPattern": "",
+    "glitterAffinity": "",
+    "stressResist": "",
+    "anarchiaReaction": "",
+    "habit": "",
+    "likesDislikes": "",
+    "weakness": "",
+    "memo": "",
+    "id": "char_1791897939286"
+  }
+}
