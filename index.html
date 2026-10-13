@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RimWorld Character Editor (AI RP Edition)</title>
+  <title>RimWorld Character Editor (Cloud Sync Edition)</title>
   <style>
     :root {
       --bg-color: #0f1115;
@@ -51,7 +51,7 @@
       border: 1px solid var(--border-color);
     }
 
-    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     button {
       background-color: var(--accent-color);
       color: white;
@@ -68,6 +68,8 @@
     button.secondary:hover { background-color: #475569; }
     button.danger { background-color: #991b1b; }
     button.danger:hover { background-color: #7f1d1d; }
+    button.cloud { background-color: #047857; }
+    button.cloud:hover { background-color: #065f46; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
@@ -242,6 +244,13 @@
       border: 1px solid var(--border-color);
       min-height: 42px;
     }
+    
+    .sync-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-align: right;
+    }
   </style>
 </head>
 <body>
@@ -258,12 +267,36 @@
     </div>
 
     <div class="btn-group">
-      <button class="secondary" onclick="exportJSON()">JSON出力</button>
-      <button class="secondary" onclick="importJSON()">JSON読込</button>
-      <button onclick="randomizeAllSkills()">🎲 スキル・情熱を一括ランダム</button>
+      <button class="cloud" onclick="syncWithGitHub()">☁️ GitHubに保存</button>
+      <button class="secondary" onclick="toggleConfigModal()">⚙️ 同期設定</button>
+      <button onclick="randomizeAllSkills()">🎲 一括ランダム</button>
       <button onclick="copyAIPrompt()">🤖 AIプロンプトコピー</button>
     </div>
   </header>
+  <div id="syncStatus" class="sync-status">同期状態: ローカル保存のみ (設定を行ってください)</div>
+
+  <!-- GitHub設定カード（初期は折りたたみ、設定ボタンで開閉） -->
+  <div class="card" id="githubConfigCard" style="display: none; border-color: var(--accent-color);">
+    <div class="card-title">⚙️ GitHub同期・保存設定 (スマホ・PC共通化)</div>
+    <div class="grid-3" style="margin-bottom: 10px;">
+      <div>
+        <label>GitHub ユーザー名</label>
+        <input type="text" id="ghUser" placeholder="例: wozgrey">
+      </div>
+      <div>
+        <label>リポジトリ名</label>
+        <input type="text" id="ghRepo" placeholder="例: rimmaker">
+      </div>
+      <div>
+        <label>アクセストークン (PAT)</label>
+        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 0.8rem; color: var(--text-muted);">※トークンはGitHubの Settings > Developer settings > Personal access tokens (Fine-grained) でContents(Read and write)権限付きで発行してください。</span>
+      <button onclick="saveGitHubConfig()">設定を保存してクラウドから読み込む</button>
+    </div>
+  </div>
 
   <!-- 1. 基本プロフィール & 画像 -->
   <div class="card">
@@ -543,17 +576,161 @@ const TRAITS_VANILLA = [
 
 let characters = {};
 let currentId = "";
-
 let skillState = {};
 SKILLS.forEach(s => skillState[s] = { userVal: 0, bsMod: 0, passion: 0 });
 
-window.onload = () => {
+// GitHub設定の保持用変数
+let ghConfig = {
+  user: localStorage.getItem("rim_gh_user") || "",
+  repo: localStorage.getItem("rim_gh_repo") || "",
+  token: localStorage.getItem("rim_gh_token") || ""
+};
+
+window.onload = async () => {
   initSkillUI();
   initBackstorySelects();
   initDefaultTraitRows();
-  loadAllCharactersFromStorage();
+
+  // 設定値が入力されていればフォームに反映
+  document.getElementById("ghUser").value = ghConfig.user;
+  document.getElementById("ghRepo").value = ghConfig.repo;
+  document.getElementById("ghToken").value = ghConfig.token;
+
+  if (ghConfig.user && ghConfig.repo && ghConfig.token) {
+    await loadFromGitHub(true); // 自動初回ロード
+  } else {
+    loadAllCharactersFromStorage(); // ローカルからフォールバック
+    document.getElementById("githubConfigCard").style.display = "block"; // 初回は設定を開く
+  }
 };
 
+function toggleConfigModal() {
+  const card = document.getElementById("githubConfigCard");
+  card.style.display = card.style.display === "none" ? "block" : "none";
+}
+
+function saveGitHubConfig() {
+  ghConfig.user = document.getElementById("ghUser").value.trim();
+  ghConfig.repo = document.getElementById("ghRepo").value.trim();
+  ghConfig.token = document.getElementById("ghToken").value.trim();
+
+  localStorage.setItem("rim_gh_user", ghConfig.user);
+  localStorage.setItem("rim_gh_repo", ghConfig.repo);
+  localStorage.setItem("rim_gh_token", ghConfig.token);
+
+  alert("⚙️ GitHub設定を保存しました。クラウドからデータを読み込みます...");
+  loadFromGitHub(false);
+}
+
+// --- GitHub API 通信ロジック ---
+const FILE_PATH = "rimworld_data.json";
+
+async function loadFromGitHub(isStartup = false) {
+  if (!ghConfig.user || !ghConfig.repo || !ghConfig.token) {
+    if (!isStartup) alert("GitHubのユーザー名、リポジトリ名、アクセストークンを設定してください。");
+    return;
+  }
+
+  const url = `https://api.github.com/repos/${ghConfig.user}/${ghConfig.repo}/contents/${FILE_PATH}`;
+  document.getElementById("syncStatus").innerText = "同期状態: GitHubから読み込み中...";
+
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "Authorization": `token ${ghConfig.token}`,
+        "Accept": "application/vnd.github.v3+json"
+      }
+    });
+
+    if (res.status === 404) {
+      document.getElementById("syncStatus").innerText = "同期状態: クラウド上にファイルがありません（新規作成されます）";
+      loadAllCharactersFromStorage();
+      return;
+    }
+
+    if (!res.ok) throw new Error("GitHubからのデータ取得に失敗しました。");
+
+    const data = await res.json();
+    const jsonString = decodeURIComponent(escape(atob(data.content))); // Base64デコード
+    characters = JSON.parse(jsonString);
+
+    refreshCharSelect();
+    updateFactionSelectOptions();
+
+    const keys = Object.keys(characters);
+    if (keys.length > 0) {
+      currentId = keys[0];
+      document.getElementById("charSelect").value = currentId;
+      applyData(characters[currentId]);
+    }
+
+    document.getElementById("syncStatus").innerText = "同期状態: ✅ クラウド(GitHub)と同期完了";
+    if (!isStartup) alert("☁️ クラウドからデータを正常に読み込みました！");
+  } catch (err) {
+    console.error(err);
+    document.getElementById("syncStatus").innerText = "同期状態: ⚠️ 読み込みエラー（ローカルデータを使用）";
+    loadAllCharactersFromStorage();
+    if (!isStartup) alert("エラー: " + err.message);
+  }
+}
+
+async function syncWithGitHub() {
+  if (!ghConfig.user || !ghConfig.repo || !ghConfig.token) {
+    alert("先に「同期設定」ボタンからGitHubの設定を行ってください。");
+    document.getElementById("githubConfigCard").style.display = "block";
+    return;
+  }
+
+  autoSaveCurrent(); // 保存前に直近の変更を確定
+  const url = `https://api.github.com/repos/${ghConfig.user}/${ghConfig.repo}/contents/${FILE_PATH}`;
+  document.getElementById("syncStatus").innerText = "同期状態: GitHubへ保存中...";
+
+  try {
+    // 1. 既存ファイルのSHA（バージョン管理ID）を取得する
+    let sha = null;
+    const getRes = await fetch(url, {
+      headers: {
+        "Authorization": `token ${ghConfig.token}`,
+        "Accept": "application/vnd.github.v3+json"
+      }
+    });
+
+    if (getRes.ok) {
+      const fileData = await getRes.json();
+      sha = fileData.sha;
+    }
+
+    // 2. データをBase64エンコード
+    const jsonString = JSON.stringify(characters, null, 2);
+    const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
+
+    // 3. GitHubへPUTリクエスト（保存）
+    const putRes = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Authorization": `token ${ghConfig.token}`,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: "Update RimWorld character data via Web Editor",
+        content: base64Content,
+        sha: sha // 既存ファイルがある場合は上書き用に必須
+      })
+    });
+
+    if (!putRes.ok) throw new Error("GitHubへの保存に失敗しました（トークンの権限やリポジトリ名を確認してください）。");
+
+    document.getElementById("syncStatus").innerText = "同期状態: ✅ クラウド(GitHub)へ保存完了";
+    alert("☁️ GitHubへの保存が完了しました！スマホやPCの別端末でもこのデータを読み込めます。");
+  } catch (err) {
+    console.error(err);
+    document.getElementById("syncStatus").innerText = "同期状態: ❌ 保存エラー";
+    alert("保存エラー: " + err.message);
+  }
+}
+
+// --- 通常のUIロジック ---
 function initSkillUI() {
   const container = document.getElementById("skillListContainer");
   container.innerHTML = "";
@@ -614,7 +791,6 @@ function recalcBackstoryMods() {
   for (let s in cData.mods) { if (skillState[s]) skillState[s].bsMod += cData.mods[s]; }
   for (let s in aData.mods) { if (skillState[s]) skillState[s].bsMod += aData.mods[s]; }
 
-  // 生い立ち変更時、UserValが補正を下回らないように補正
   SKILLS.forEach(s => {
     if (skillState[s].userVal < skillState[s].bsMod) {
       skillState[s].userVal = skillState[s].bsMod;
@@ -636,7 +812,6 @@ function recalcBackstoryMods() {
   renderSkills();
 }
 
-// 数値のダイス生成（平均2〜3、情熱があると高め）
 function getRandomSkillValue(hasPassion) {
   const rand = Math.random() * 100;
   let baseVal = 0;
@@ -656,7 +831,6 @@ function getRandomSkillValue(hasPassion) {
   return baseVal;
 }
 
-// 1. 個別ランダム
 function randomizeSingleSkill(skill) {
   const st = skillState[skill];
   const pRand = Math.random();
@@ -671,29 +845,22 @@ function randomizeSingleSkill(skill) {
   autoSaveCurrent();
 }
 
-// 2. 全体ランダム（情熱ポイント分配：平均5〜6pt［情熱2=2pt, 情熱1=1pt］）
 function randomizeAllSkills() {
-  // ① まず全員の情熱をリセット
   SKILLS.forEach(s => skillState[s].passion = 0);
-
-  // ② 総ポイントを 4 〜 7pt（平均5〜6pt）で決定
   const targetPtsChoices = [4, 5, 5, 6, 6, 6, 7];
   let budget = targetPtsChoices[Math.floor(Math.random() * targetPtsChoices.length)];
 
-  // ③ ポイントが尽きるまで、ランダムなスキルに情熱を割り振り
   let attempts = 0;
   while (budget > 0 && attempts < 100) {
     attempts++;
     const randomSkill = SKILLS[Math.floor(Math.random() * SKILLS.length)];
     const st = skillState[randomSkill];
-
     if (st.passion < 2) {
       st.passion += 1;
       budget -= 1;
     }
   }
 
-  // ④ 割り振った情熱をベースに数値を生成（生い立ち補正値より小さくならないように保護）
   SKILLS.forEach(s => {
     const st = skillState[s];
     const rawVal = getRandomSkillValue(st.passion);
@@ -723,7 +890,6 @@ function stepSkill(skill, delta) {
 function renderSkills() {
   SKILLS.forEach(s => {
     const st = skillState[s];
-
     const fireEl = document.getElementById(`fire-${s}`);
     if (st.passion === 0) { fireEl.innerText = "🔥🔥"; fireEl.className = "passion-fire fire-0"; }
     else if (st.passion === 1) { fireEl.innerText = "🔥"; fireEl.className = "passion-fire fire-1"; }
@@ -735,17 +901,11 @@ function renderSkills() {
     const greenWidthVal = Math.min(userVal, bsMod);
     const darkWidthVal = userVal;
 
-    const greenPct = (greenWidthVal / 20) * 100;
-    const darkPct = (darkWidthVal / 20) * 100;
+    document.getElementById(`bar-green-${s}`).style.width = `${(greenWidthVal / 20) * 100}%`;
+    document.getElementById(`bar-dark-${s}`).style.width = `${(darkWidthVal / 20) * 100}%`;
 
-    document.getElementById(`bar-green-${s}`).style.width = `${greenPct}%`;
-    document.getElementById(`bar-dark-${s}`).style.width = `${darkPct}%`;
-
-    const numEl = document.getElementById(`val-num-${s}`);
-    const rankEl = document.getElementById(`rank-desc-${s}`);
-
-    numEl.innerText = userVal;
-    rankEl.innerText = SKILL_RANKS[userVal] || "神の領域";
+    document.getElementById(`val-num-${s}`).innerText = userVal;
+    document.getElementById(`rank-desc-${s}`).innerText = SKILL_RANKS[userVal] || "神の領域";
   });
 }
 
@@ -809,7 +969,6 @@ function updateFactionSelectOptions() {
   fSel.innerHTML = "";
 
   let factions = new Set(["アナーキア不時着隊", "アナーキア奉納教団", "グリッターワールド不時着者グループ"]);
-
   for (let id in characters) {
     if (characters[id].faction) factions.add(characters[id].faction);
   }
@@ -834,7 +993,7 @@ function onFactionSelectChange() {
 }
 
 function loadAllCharactersFromStorage() {
-  const saved = localStorage.getItem("rimworld_chars_data_v8");
+  const saved = localStorage.getItem("rimworld_chars_cloud_v1");
   if (saved) {
     characters = JSON.parse(saved);
   } else {
@@ -905,7 +1064,7 @@ function autoSaveCurrent() {
 }
 
 function saveAllToStorage() {
-  localStorage.setItem("rimworld_chars_data_v8", JSON.stringify(characters));
+  localStorage.setItem("rimworld_chars_cloud_v1", JSON.stringify(characters));
 }
 
 function gatherFormData() {
@@ -1047,38 +1206,6 @@ ${getVal("memo")}
   navigator.clipboard.writeText(prompt).then(() => {
     alert("🤖 AIプロンプトをクリップボードにコピーしました！");
   });
-}
-
-function exportJSON() {
-  const data = gatherFormData();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `${data.nickname || "character"}_editor.json`;
-  a.click();
-}
-
-function importJSON() {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "application/json";
-  input.onchange = e => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = event => {
-      const data = JSON.parse(event.target.result);
-      data.id = "char_" + Date.now();
-      characters[data.id] = data;
-      currentId = data.id;
-      saveAllToStorage();
-      refreshCharSelect();
-      updateFactionSelectOptions();
-      document.getElementById("charSelect").value = currentId;
-      applyData(data);
-    };
-    reader.readAsText(file);
-  };
-  input.click();
 }
 
 document.querySelectorAll("input, textarea, select").forEach(el => {
