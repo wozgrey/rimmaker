@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RimWorld Character Editor (Cloud Sync Edition)</title>
+  <title>RimWorld Character Editor (Responsive Edition)</title>
   <style>
     :root {
       --bg-color: #0f1115;
@@ -22,46 +22,48 @@
       color: var(--text-color);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       line-height: 1.5;
-      padding: 15px;
+      padding: 10px;
     }
 
-    .container { max-width: 1200px; margin: 0 auto; }
+    .container { max-width: 1200px; margin: 0 auto; width: 100%; }
 
     header {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 12px 20px;
-      margin-bottom: 15px;
+      padding: 12px 15px;
+      margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 10px;
     }
-    h1 { font-size: 1.3rem; color: var(--accent-color); font-weight: bold; }
+    h1 { font-size: 1.2rem; color: var(--accent-color); font-weight: bold; }
 
     .char-manager {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       background: var(--input-bg);
-      padding: 6px 12px;
+      padding: 6px 10px;
       border-radius: 6px;
       border: 1px solid var(--border-color);
+      flex-wrap: wrap;
     }
 
-    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
     button {
       background-color: var(--accent-color);
       color: white;
       border: none;
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 4px;
       cursor: pointer;
       font-weight: bold;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       transition: background 0.2s;
+      white-space: nowrap;
     }
     button:hover { background-color: var(--accent-hover); }
     button.secondary { background-color: #334155; }
@@ -71,20 +73,31 @@
     button.cloud { background-color: #047857; }
     button.cloud:hover { background-color: #065f46; }
 
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    .grid-profile { display: grid; grid-template-columns: 160px 1fr; gap: 20px; }
+    /* レスポンシブ対応のグリッド */
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+    
+    .grid-profile { 
+      display: grid; 
+      grid-template-columns: 160px 1fr; 
+      gap: 15px; 
+    }
+    /* スマホなど画面が狭いときはプロフィールを縦並びにする */
+    @media (max-width: 768px) {
+      .grid-profile { grid-template-columns: 1fr; }
+      .avatar-box { margin: 0 auto; }
+    }
 
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 15px;
+      padding: 12px;
+      margin-bottom: 12px;
     }
     .card-title {
-      font-size: 1rem;
+      font-size: 0.95rem;
       color: var(--accent-color);
       margin-bottom: 10px;
       padding-bottom: 4px;
@@ -92,27 +105,29 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
     }
 
-    label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 3px; }
+    label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px; }
     input[type="text"], input[type="number"], select, textarea {
       width: 100%;
       background-color: var(--input-bg);
       border: 1px solid var(--border-color);
       color: var(--text-color);
-      padding: 8px 10px;
+      padding: 7px 8px;
       border-radius: 4px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       outline: none;
     }
     input:focus, select:focus, textarea:focus { border-color: var(--accent-color); }
     
-    textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
-    .memo-textarea { min-height: 220px !important; }
+    textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
+    .memo-textarea { min-height: 180px !important; }
 
     .avatar-box {
-      width: 160px;
-      height: 190px;
+      width: 140px;
+      height: 170px;
       border: 2px dashed var(--border-color);
       border-radius: 6px;
       display: flex;
@@ -125,41 +140,42 @@
       overflow: hidden;
     }
     .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
-    .avatar-placeholder { text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+    .avatar-placeholder { text-align: center; color: var(--text-muted); font-size: 0.75rem; }
 
-    /* --- スキルUI --- */
-    .skill-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+    /* --- スキルUI（スマホ対応幅調整） --- */
+    .skill-list { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
     .skill-row {
       display: flex;
       align-items: center;
-      height: 28px;
-      font-size: 0.9rem;
+      height: 26px;
+      font-size: 0.85rem;
       user-select: none;
+      gap: 4px;
     }
     .skill-label-box {
-      width: 100px;
+      width: 85px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-right: 8px;
+      flex-shrink: 0;
     }
-    .skill-name-str { font-weight: bold; }
-    .passion-fire { cursor: pointer; font-size: 1.05rem; }
+    .skill-name-str { font-weight: bold; font-size: 0.85rem; }
+    .passion-fire { cursor: pointer; font-size: 0.95rem; }
     .fire-0 { opacity: 0.1; filter: grayscale(100%); }
     .fire-1 { opacity: 0.9; filter: drop-shadow(0 0 2px #f97316); }
     .fire-2 { opacity: 1; filter: drop-shadow(0 0 5px #ef4444); }
 
     .skill-bar-container {
       position: relative;
-      width: 120px;
-      height: 24px;
+      flex: 1;
+      min-width: 80px;
+      height: 22px;
       background: #111417;
       border: 1px solid #232730;
       border-radius: 2px;
       display: flex;
       align-items: center;
       overflow: hidden;
-      margin-right: 6px;
     }
     .skill-bar-bg-dark {
       position: absolute;
@@ -178,25 +194,25 @@
     .skill-val-num {
       position: relative;
       z-index: 3;
-      padding-left: 8px;
+      padding-left: 6px;
       font-weight: bold;
       color: #ffffff;
       text-shadow: 0 0 3px #000;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
     .skill-rank-desc {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
-      width: 110px;
+      width: 85px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-right: 4px;
+      flex-shrink: 0;
     }
 
     .skill-btn-step {
-      width: 22px;
-      height: 24px;
+      width: 20px;
+      height: 22px;
       background: #252a34;
       border: 1px solid #3b4252;
       color: #e2e8f0;
@@ -206,21 +222,21 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-left: 2px;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
+      flex-shrink: 0;
     }
     .skill-btn-step:hover { background: #3b4252; }
 
     .skill-btn-random {
-      padding: 2px 6px;
-      height: 24px;
+      padding: 2px 4px;
+      height: 22px;
       background: #334155;
       border: 1px solid #475569;
       color: #fff;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       border-radius: 3px;
       cursor: pointer;
-      margin-left: 6px;
+      flex-shrink: 0;
     }
     .skill-btn-random:hover { background: #475569; }
 
@@ -228,25 +244,25 @@
       background: #2a1215;
       border: 1px solid #7f1d1d;
       color: #fca5a5;
-      padding: 6px 12px;
+      padding: 6px 10px;
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       margin-top: 8px;
     }
 
     .trait-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
     .trait-desc-box {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #a1a1aa;
       background: var(--input-bg);
       padding: 8px;
       border-radius: 4px;
       border: 1px solid var(--border-color);
-      min-height: 42px;
+      min-height: 38px;
     }
     
     .sync-status {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
       margin-top: 4px;
       text-align: right;
@@ -260,24 +276,23 @@
     <h1>RimWorld Character Editor</h1>
     
     <div class="char-manager">
-      <label style="margin:0;">キャラ選択:</label>
-      <select id="charSelect" onchange="switchCharacter()" style="width: 140px;"></select>
-      <button class="secondary" onclick="createNewCharacter()">＋新規</button>
+      <label style="margin:0;">キャラ:</label>
+      <select id="charSelect" onchange="switchCharacter()" style="width: 120px;"></select>
+      <button class="secondary" onclick="createNewCharacter()">＋新</button>
       <button class="danger" onclick="deleteCurrentCharacter()">削除</button>
     </div>
 
     <div class="btn-group">
-      <button class="cloud" onclick="syncWithGitHub()">☁️ GitHubに保存</button>
-      <button class="secondary" onclick="toggleConfigModal()">⚙️ 同期設定</button>
+      <button class="cloud" onclick="syncWithGitHub()">☁️ 保存</button>
+      <button class="secondary" onclick="toggleConfigModal()">⚙️ 設定</button>
       <button onclick="randomizeAllSkills()">🎲 一括ランダム</button>
-      <button onclick="copyAIPrompt()">🤖 AIプロンプトコピー</button>
+      <button onclick="copyAIPrompt()">🤖 コピー</button>
     </div>
   </header>
-  <div id="syncStatus" class="sync-status">同期状態: ローカル保存のみ (設定を行ってください)</div>
+  <div id="syncStatus" class="sync-status">同期状態: ローカル保存のみ</div>
 
-  <!-- GitHub設定カード（初期は折りたたみ、設定ボタンで開閉） -->
   <div class="card" id="githubConfigCard" style="display: none; border-color: var(--accent-color);">
-    <div class="card-title">⚙️ GitHub同期・保存設定 (スマホ・PC共通化)</div>
+    <div class="card-title">⚙️ GitHub同期・保存設定</div>
     <div class="grid-3" style="margin-bottom: 10px;">
       <div>
         <label>GitHub ユーザー名</label>
@@ -292,9 +307,9 @@
         <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
       </div>
     </div>
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span style="font-size: 0.8rem; color: var(--text-muted);">※トークンはGitHubの Settings > Developer settings > Personal access tokens (Fine-grained) でContents(Read and write)権限付きで発行してください。</span>
-      <button onclick="saveGitHubConfig()">設定を保存してクラウドから読み込む</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+      <span style="font-size: 0.75rem; color: var(--text-muted);">Contents(Read and write)権限付きトークンを入力してください。</span>
+      <button onclick="saveGitHubConfig()">設定を保存して読込</button>
     </div>
   </div>
 
@@ -312,52 +327,52 @@
       </div>
 
       <div>
-        <div class="grid-3" style="margin-bottom: 10px;">
+        <div class="grid-3" style="margin-bottom: 8px;">
           <div>
             <label>姓 (Last Name)</label>
             <input type="text" id="lastName" placeholder="例: 霧雨">
-            <input type="text" id="lastNameKana" placeholder="ふりがな (例: きりさめ)" style="margin-top:4px; font-size:0.8rem;">
+            <input type="text" id="lastNameKana" placeholder="ふりがな" style="margin-top:3px; font-size:0.75rem;">
           </div>
           <div>
             <label>名 (First Name)</label>
             <input type="text" id="firstName" placeholder="例: 灰">
-            <input type="text" id="firstNameKana" placeholder="ふりがな (例: かい)" style="margin-top:4px; font-size:0.8rem;">
+            <input type="text" id="firstNameKana" placeholder="ふりがな" style="margin-top:3px; font-size:0.75rem;">
           </div>
           <div>
-            <label>ニックネーム (Nickname)</label>
+            <label>ニックネーム</label>
             <input type="text" id="nickname" placeholder="例: カイ">
           </div>
         </div>
 
-        <div class="grid-4" style="margin-bottom: 10px;">
-          <div><label>性別 (Gender)</label><select id="gender"><option value="">未選択</option><option>男</option><option>女</option><option>その他</option></select></div>
-          <div><label>年齢 (実年齢)</label><input type="number" id="age" placeholder="例: 20"></div>
-          <div><label>クロノ年齢 (肉体年齢)</label><input type="number" id="chronoAge" placeholder="例: 20"></div>
-          <div><label>役割 / 専門分野</label><input type="text" id="role" placeholder="例: リーダー / 研究員"></div>
+        <div class="grid-4" style="margin-bottom: 8px;">
+          <div><label>性別</label><select id="gender"><option value="">未選択</option><option>男</option><option>女</option><option>その他</option></select></div>
+          <div><label>実年齢</label><input type="number" id="age" placeholder="20"></div>
+          <div><label>肉体年齢</label><input type="number" id="chronoAge" placeholder="20"></div>
+          <div><label>役割</label><input type="text" id="role" placeholder="リーダー"></div>
         </div>
 
-        <div class="grid-2" style="margin-bottom: 10px;">
+        <div class="grid-2" style="margin-bottom: 8px;">
           <div>
-            <label>所属派閥 (Faction)</label>
+            <label>所属派閥</label>
             <select id="factionSelect" onchange="onFactionSelectChange()"></select>
-            <input type="text" id="factionCustom" placeholder="派閥名を直接入力..." style="display:none; margin-top:4px;">
+            <input type="text" id="factionCustom" placeholder="派閥名を直接入力..." style="display:none; margin-top:3px;">
           </div>
           <div>
-            <label>信奉思想 (Ideoligion)</label>
-            <input type="text" id="ideology" placeholder="例: 地球的人道主義 / 機械信奉">
+            <label>信奉思想</label>
+            <input type="text" id="ideology" placeholder="例: 地球的人道主義">
           </div>
         </div>
 
         <div class="grid-2">
           <div>
-            <label>幼少期 (Childhood)</label>
+            <label>幼少期</label>
             <select id="childhood" onchange="onBackstoryChange('childhood')"></select>
-            <input type="text" id="childhoodCustom" placeholder="幼少期を自由入力..." style="display:none; margin-top:4px;">
+            <input type="text" id="childhoodCustom" placeholder="自由入力..." style="display:none; margin-top:3px;">
           </div>
           <div>
-            <label>成年期 (Adulthood)</label>
+            <label>成年期</label>
             <select id="adulthood" onchange="onBackstoryChange('adulthood')"></select>
-            <input type="text" id="adulthoodCustom" placeholder="成年期を自由入力..." style="display:none; margin-top:4px;">
+            <input type="text" id="adulthoodCustom" placeholder="自由入力..." style="display:none; margin-top:3px;">
           </div>
         </div>
         <div id="incapableDisplay" class="incapable-box" style="display:none;">
@@ -371,16 +386,16 @@
   <div class="grid-2">
     <div class="card">
       <div class="card-title">
-        2. スキル (Character Editor風UI)
-        <button class="secondary" style="padding: 2px 8px; font-size: 0.75rem;" onclick="randomizeAllSkills()">🎲 スキル一括ランダム</button>
+        2. スキル
+        <button class="secondary" style="padding: 2px 6px; font-size: 0.7rem;" onclick="randomizeAllSkills()">🎲 一括ランダム</button>
       </div>
       <div class="skill-list" id="skillListContainer"></div>
     </div>
 
     <div class="card">
       <div class="card-title">
-        3. 特性・才能 (Traits - バニラ全網羅)
-        <button class="secondary" style="padding: 2px 6px; font-size: 0.75rem;" onclick="addTraitRow()">＋ 枠追加</button>
+        3. 特性・才能
+        <button class="secondary" style="padding: 2px 6px; font-size: 0.7rem;" onclick="addTraitRow()">＋ 追加</button>
       </div>
       <div id="traitContainer"></div>
       <div class="trait-desc-box" id="traitDescription">選択した才能の解説を表示します</div>
@@ -389,60 +404,60 @@
 
   <!-- 3. 性格 & 内面構造 -->
   <div class="card">
-    <div class="card-title">4. 性格・内面構造 (Psychology & Values)</div>
-    <div class="grid-2" style="margin-bottom: 12px;">
-      <div><label>表向きの性格（パブリック・フェイス）</label><textarea id="publicFace" placeholder="日常や初対面で他者に見せる標準的な態度や印象"></textarea></div>
-      <div><label>根底にある価値観・倫理観（コア・ビリーフ）</label><textarea id="coreBelief" placeholder="命の価値、倫理基準、生き残りに対する基本的な考え方"></textarea></div>
+    <div class="card-title">4. 性格・内面構造</div>
+    <div class="grid-2" style="margin-bottom: 10px;">
+      <div><label>表向きの性格（パブリック・フェイス）</label><textarea id="publicFace" placeholder="日常や初対面での印象"></textarea></div>
+      <div><label>根底にある価値観・倫理観</label><textarea id="coreBelief" placeholder="命の価値や倫理基準"></textarea></div>
     </div>
     <div class="grid-3">
-      <div><label>長所と短所（ギャップ・矛盾）</label><textarea id="gap" placeholder="頼りになるが頑固、冷静だが冷酷など表裏一体の性質"></textarea></div>
-      <div><label>自己評価・コンプレックス</label><textarea id="complex" placeholder="自身の嫌いな部分、人知れず抱く劣等感や不安"></textarea></div>
-      <div><label>モチベーション（行動の原動力）</label><textarea id="motivation" placeholder="何のために生き延びようとしているか（帰郷、仲間保護など）"></textarea></div>
+      <div><label>長所と短所（ギャップ）</label><textarea id="gap" placeholder="表裏一体の性質"></textarea></div>
+      <div><label>自己評価・コンプレックス</label><textarea id="complex" placeholder="劣等感や不安"></textarea></div>
+      <div><label>モチベーション</label><textarea id="motivation" placeholder="行動の原動力"></textarea></div>
     </div>
   </div>
 
   <!-- 4. 過去・背景とトラウマ -->
   <div class="card">
-    <div class="card-title">5. 過去・背景とトラウマ (Backstory & Trauma)</div>
-    <div class="grid-2" style="margin-bottom: 12px;">
-      <div><label>幼少期の環境</label><textarea id="childEnv" placeholder="家庭環境、教育方針、成長過程での出来事"></textarea></div>
-      <div><label>人生の転機（ターニングポイント）</label><textarea id="turningPoint" placeholder="現在の性格や人生観を決定づけた過去の事件・出来事"></textarea></div>
+    <div class="card-title">5. 過去・背景とトラウマ</div>
+    <div class="grid-2" style="margin-bottom: 10px;">
+      <div><label>幼少期の環境</label><textarea id="childEnv" placeholder="家庭環境や教育方針"></textarea></div>
+      <div><label>人生の転機</label><textarea id="turningPoint" placeholder="人生観を決定づけた出来事"></textarea></div>
     </div>
     <div class="grid-2">
-      <div><label>トラウマと「心の傷」</label><textarea id="trauma" placeholder="過去の失敗、失った大切なもの、消えない記憶"></textarea></div>
-      <div><label>トリガー（感情の爆発ポイント）【重要】</label><textarea id="trigger" placeholder="過剰反応してしまう特定の言葉・状況・音・匂いなど"></textarea></div>
+      <div><label>トラウマと「心の傷」</label><textarea id="trauma" placeholder="消えない記憶"></textarea></div>
+      <div><label>トリガー（感情の爆発ポイント）</label><textarea id="trigger" placeholder="過剰反応してしまう状況"></textarea></div>
     </div>
   </div>
 
   <!-- 5. 人間関係と「境界線」 -->
   <div class="card">
-    <div class="card-title">6. 人間関係と「境界線」 (Relationships)</div>
+    <div class="card-title">6. 人間関係と「境界線」</div>
     <div class="grid-3">
-      <div><label>仲間（他メンバー）へのスタンス</label><textarea id="relParty" placeholder="仲間に対する心理的距離、他者（部外者）との扱いの差"></textarea></div>
-      <div><label>不満やストレスの溜め込み方</label><textarea id="stressType" placeholder="我慢して溜め込む、皮肉を言う、すぐに不満を口に出すなど"></textarea></div>
-      <div><label>衝突（喧嘩）した時の行動パターン</label><textarea id="fightPattern" placeholder="論理的に詰め寄る、黙り込む、大声で怒鳴るなど"></textarea></div>
+      <div><label>仲間へのスタンス</label><textarea id="relParty" placeholder="心理的距離"></textarea></div>
+      <div><label>ストレスの溜め込み方</label><textarea id="stressType" placeholder="我慢の仕方"></textarea></div>
+      <div><label>衝突時の行動パターン</label><textarea id="fightPattern" placeholder="喧嘩した時の反応"></textarea></div>
     </div>
   </div>
 
   <!-- 6. 適応度 & 癖 -->
   <div class="card">
-    <div class="card-title">7. アナーキア適応度 & 日常の癖 (Adaptability & Quirks)</div>
-    <div class="grid-3" style="margin-bottom: 12px;">
-      <div><label>文明への執着（グリッターワールドへの想い）</label><textarea id="glitterAffinity" placeholder="高度な文明生活への未練や帰還への意欲"></textarea></div>
-      <div><label>環境変化へのストレス耐性</label><textarea id="stressResist" placeholder="不衛生、不味い食事、怪我、過労などに対する耐久度"></textarea></div>
-      <div><label>アナーキアのイデオロギー（現地の狂気）への反応</label><textarea id="anarchiaReaction" placeholder="現地の過激なカルトや略奪者に対する感情"></textarea></div>
+    <div class="card-title">7. アナーキア適応度 & 日常の癖</div>
+    <div class="grid-3" style="margin-bottom: 10px;">
+      <div><label>文明への執着</label><textarea id="glitterAffinity" placeholder="高度文明への未練"></textarea></div>
+      <div><label>環境変化へのストレス耐性</label><textarea id="stressResist" placeholder="耐久度"></textarea></div>
+      <div><label>現地イデオロギーへの反応</label><textarea id="anarchiaReaction" placeholder="狂気に対する感情"></textarea></div>
     </div>
     <div class="grid-3">
-      <div><label>思考の癖（コンフォートゾーン）</label><textarea id="habit" placeholder="考え事をする際や不安な時に無意識にとる行動"></textarea></div>
-      <div><label>好きなもの / 嫌いなもの</label><textarea id="likesDislikes" placeholder="好みの食べ物、時間帯、得意/苦手な状況など"></textarea></div>
-      <div><label>人間らしい隙・弱点</label><textarea id="weakness" placeholder="親しみを感じさせる不器用な部分や弱点"></textarea></div>
+      <div><label>思考の癖</label><textarea id="habit" placeholder="無意識にとる行動"></textarea></div>
+      <div><label>好きなもの / 嫌いなもの</label><textarea id="likesDislikes" placeholder="好みの食べ物など"></textarea></div>
+      <div><label>人間らしい隙・弱点</label><textarea id="weakness" placeholder="不器用な部分"></textarea></div>
     </div>
   </div>
 
   <!-- 7. メモ欄 -->
   <div class="card">
     <div class="card-title">8. メモ欄</div>
-    <textarea id="memo" class="memo-textarea" placeholder="その他補足設定、セッション用メモ、AIストーリー用エピソード下書きなど..."></textarea>
+    <textarea id="memo" class="memo-textarea" placeholder="その他補足設定など..."></textarea>
   </div>
 </div>
 
@@ -579,7 +594,6 @@ let currentId = "";
 let skillState = {};
 SKILLS.forEach(s => skillState[s] = { userVal: 0, bsMod: 0, passion: 0 });
 
-// GitHub設定の保持用変数
 let ghConfig = {
   user: localStorage.getItem("rim_gh_user") || "",
   repo: localStorage.getItem("rim_gh_repo") || "",
@@ -591,16 +605,15 @@ window.onload = async () => {
   initBackstorySelects();
   initDefaultTraitRows();
 
-  // 設定値が入力されていればフォームに反映
   document.getElementById("ghUser").value = ghConfig.user;
   document.getElementById("ghRepo").value = ghConfig.repo;
   document.getElementById("ghToken").value = ghConfig.token;
 
   if (ghConfig.user && ghConfig.repo && ghConfig.token) {
-    await loadFromGitHub(true); // 自動初回ロード
+    await loadFromGitHub(true);
   } else {
-    loadAllCharactersFromStorage(); // ローカルからフォールバック
-    document.getElementById("githubConfigCard").style.display = "block"; // 初回は設定を開く
+    loadAllCharactersFromStorage();
+    document.getElementById("githubConfigCard").style.display = "block";
   }
 };
 
@@ -618,21 +631,20 @@ function saveGitHubConfig() {
   localStorage.setItem("rim_gh_repo", ghConfig.repo);
   localStorage.setItem("rim_gh_token", ghConfig.token);
 
-  alert("⚙️ GitHub設定を保存しました。クラウドからデータを読み込みます...");
+  alert("⚙️ 設定を保存しました。クラウドから読み込みます...");
   loadFromGitHub(false);
 }
 
-// --- GitHub API 通信ロジック ---
 const FILE_PATH = "rimworld_data.json";
 
 async function loadFromGitHub(isStartup = false) {
   if (!ghConfig.user || !ghConfig.repo || !ghConfig.token) {
-    if (!isStartup) alert("GitHubのユーザー名、リポジトリ名、アクセストークンを設定してください。");
+    if (!isStartup) alert("GitHubの設定を入力してください。");
     return;
   }
 
   const url = `https://api.github.com/repos/${ghConfig.user}/${ghConfig.repo}/contents/${FILE_PATH}`;
-  document.getElementById("syncStatus").innerText = "同期状態: GitHubから読み込み中...";
+  document.getElementById("syncStatus").innerText = "同期状態: 読込中...";
 
   try {
     const res = await fetch(url, {
@@ -643,15 +655,15 @@ async function loadFromGitHub(isStartup = false) {
     });
 
     if (res.status === 404) {
-      document.getElementById("syncStatus").innerText = "同期状態: クラウド上にファイルがありません（新規作成されます）";
+      document.getElementById("syncStatus").innerText = "同期状態: 新規ファイル作成予定";
       loadAllCharactersFromStorage();
       return;
     }
 
-    if (!res.ok) throw new Error("GitHubからのデータ取得に失敗しました。");
+    if (!res.ok) throw new Error("データ取得に失敗しました。");
 
     const data = await res.json();
-    const jsonString = decodeURIComponent(escape(atob(data.content))); // Base64デコード
+    const jsonString = decodeURIComponent(escape(atob(data.content)));
     characters = JSON.parse(jsonString);
 
     refreshCharSelect();
@@ -664,11 +676,11 @@ async function loadFromGitHub(isStartup = false) {
       applyData(characters[currentId]);
     }
 
-    document.getElementById("syncStatus").innerText = "同期状態: ✅ クラウド(GitHub)と同期完了";
-    if (!isStartup) alert("☁️ クラウドからデータを正常に読み込みました！");
+    document.getElementById("syncStatus").innerText = "同期状態: ✅ 同期完了";
+    if (!isStartup) alert("☁️ クラウドからデータを読み込みました！");
   } catch (err) {
     console.error(err);
-    document.getElementById("syncStatus").innerText = "同期状態: ⚠️ 読み込みエラー（ローカルデータを使用）";
+    document.getElementById("syncStatus").innerText = "同期状態: ⚠️ 読込エラー（ローカル使用）";
     loadAllCharactersFromStorage();
     if (!isStartup) alert("エラー: " + err.message);
   }
@@ -676,17 +688,16 @@ async function loadFromGitHub(isStartup = false) {
 
 async function syncWithGitHub() {
   if (!ghConfig.user || !ghConfig.repo || !ghConfig.token) {
-    alert("先に「同期設定」ボタンからGitHubの設定を行ってください。");
+    alert("先に「⚙️ 設定」からGitHub情報を入力してください。");
     document.getElementById("githubConfigCard").style.display = "block";
     return;
   }
 
-  autoSaveCurrent(); // 保存前に直近の変更を確定
+  autoSaveCurrent();
   const url = `https://api.github.com/repos/${ghConfig.user}/${ghConfig.repo}/contents/${FILE_PATH}`;
-  document.getElementById("syncStatus").innerText = "同期状態: GitHubへ保存中...";
+  document.getElementById("syncStatus").innerText = "同期状態: 保存中...";
 
   try {
-    // 1. 既存ファイルのSHA（バージョン管理ID）を取得する
     let sha = null;
     const getRes = await fetch(url, {
       headers: {
@@ -700,11 +711,9 @@ async function syncWithGitHub() {
       sha = fileData.sha;
     }
 
-    // 2. データをBase64エンコード
     const jsonString = JSON.stringify(characters, null, 2);
     const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
 
-    // 3. GitHubへPUTリクエスト（保存）
     const putRes = await fetch(url, {
       method: "PUT",
       headers: {
@@ -713,16 +722,16 @@ async function syncWithGitHub() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        message: "Update RimWorld character data via Web Editor",
+        message: "Update RimWorld character data",
         content: base64Content,
-        sha: sha // 既存ファイルがある場合は上書き用に必須
+        sha: sha
       })
     });
 
-    if (!putRes.ok) throw new Error("GitHubへの保存に失敗しました（トークンの権限やリポジトリ名を確認してください）。");
+    if (!putRes.ok) throw new Error("保存に失敗しました。設定を確認してください。");
 
-    document.getElementById("syncStatus").innerText = "同期状態: ✅ クラウド(GitHub)へ保存完了";
-    alert("☁️ GitHubへの保存が完了しました！スマホやPCの別端末でもこのデータを読み込めます。");
+    document.getElementById("syncStatus").innerText = "同期状態: ✅ 保存完了";
+    alert("☁️ GitHubへの保存が完了しました！");
   } catch (err) {
     console.error(err);
     document.getElementById("syncStatus").innerText = "同期状態: ❌ 保存エラー";
@@ -730,7 +739,6 @@ async function syncWithGitHub() {
   }
 }
 
-// --- 通常のUIロジック ---
 function initSkillUI() {
   const container = document.getElementById("skillListContainer");
   container.innerHTML = "";
@@ -927,7 +935,7 @@ function addTraitRow(selectedVal = 0) {
 
   row.innerHTML = `
     <select class="trait-select" onchange="updateTraits()">${options}</select>
-    <button class="danger" style="padding: 2px 6px; font-size: 0.75rem;" onclick="removeTraitRow(this)">削除</button>
+    <button class="danger" style="padding: 2px 6px; font-size: 0.7rem;" onclick="removeTraitRow(this)">削除</button>
   `;
   container.appendChild(row);
   updateTraits();
@@ -993,7 +1001,7 @@ function onFactionSelectChange() {
 }
 
 function loadAllCharactersFromStorage() {
-  const saved = localStorage.getItem("rimworld_chars_cloud_v1");
+  const saved = localStorage.getItem("rimworld_chars_cloud_v2");
   if (saved) {
     characters = JSON.parse(saved);
   } else {
@@ -1064,7 +1072,7 @@ function autoSaveCurrent() {
 }
 
 function saveAllToStorage() {
-  localStorage.setItem("rimworld_chars_cloud_v1", JSON.stringify(characters));
+  localStorage.setItem("rimworld_chars_cloud_v2", JSON.stringify(characters));
 }
 
 function gatherFormData() {
