@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RimWorld Character Editor (AI RP Edition)</title>
+  <style>
+    :root {
+      --bg-color: #0f1115;
+      --card-bg: #181b20;
+      --accent-color: #d97706;
+      --accent-hover: #b45309;
+      --border-color: #2b303b;
+      --text-color: #e2e8f0;
+      --text-muted: #94a3b8;
+      --input-bg: #0b0c0e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.5;
+      padding: 15px;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    header {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 20px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    h1 { font-size: 1.3rem; color: var(--accent-color); font-weight: bold; }
+
+    .char-manager {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--input-bg);
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    button {
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+    button:hover { background-color: var(--accent-hover); }
+    button.secondary { background-color: #334155; }
+    button.secondary:hover { background-color: #475569; }
+    button.danger { background-color: #991b1b; }
+    button.danger:hover { background-color: #7f1d1d; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .grid-profile { display: grid; grid-template-columns: 160px 1fr; gap: 20px; }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 15px;
+    }
+    .card-title {
+      font-size: 1rem;
+      color: var(--accent-color);
+      margin-bottom: 10px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 3px; }
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      background-color: var(--input-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent-color); }
+    
+    textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+    .memo-textarea { min-height: 220px !important; }
+
+    .avatar-box {
+      width: 160px;
+      height: 190px;
+      border: 2px dashed var(--border-color);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--input-bg);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-placeholder { text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+
+    /* --- スキルUI --- */
+    .skill-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+    .skill-row {
+      display: flex;
+      align-items: center;
+      height: 28px;
+      font-size: 0.9rem;
+      user-select: none;
+    }
+    .skill-label-box {
+      width: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-right: 8px;
+    }
+    .skill-name-str { font-weight: bold; }
+    .passion-fire { cursor: pointer; font-size: 1.05rem; }
+    .fire-0 { opacity: 0.1; filter: grayscale(100%); }
+    .fire-1 { opacity: 0.9; filter: drop-shadow(0 0 2px #f97316); }
+    .fire-2 { opacity: 1; filter: drop-shadow(0 0 5px #ef4444); }
+
+    .skill-bar-container {
+      position: relative;
+      width: 120px;
+      height: 24px;
+      background: #111417;
+      border: 1px solid #232730;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      margin-right: 6px;
+    }
+    .skill-bar-bg-dark {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      background: #3e4452;
+      z-index: 1;
+      transition: width 0.15s;
+    }
+    .skill-bar-bg-green {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      background: #2e6034;
+      z-index: 2;
+      transition: width 0.15s;
+    }
+    .skill-val-num {
+      position: relative;
+      z-index: 3;
+      padding-left: 8px;
+      font-weight: bold;
+      color: #ffffff;
+      text-shadow: 0 0 3px #000;
+      font-size: 0.9rem;
+    }
+    .skill-rank-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      width: 110px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-right: 4px;
+    }
+
+    .skill-btn-step {
+      width: 22px;
+      height: 24px;
+      background: #252a34;
+      border: 1px solid #3b4252;
+      color: #e2e8f0;
+      font-weight: bold;
+      border-radius: 3px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 2px;
+      font-size: 0.9rem;
+    }
+    .skill-btn-step:hover { background: #3b4252; }
+
+    .skill-btn-random {
+      padding: 2px 6px;
+      height: 24px;
+      background: #334155;
+      border: 1px solid #475569;
+      color: #fff;
+      font-size: 0.75rem;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-left: 6px;
+    }
+    .skill-btn-random:hover { background: #475569; }
+
+    .incapable-box {
+      background: #2a1215;
+      border: 1px solid #7f1d1d;
+      color: #fca5a5;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-top: 8px;
+    }
+
+    .trait-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+    .trait-desc-box {
+      font-size: 0.8rem;
+      color: #a1a1aa;
+      background: var(--input-bg);
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      min-height: 42px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>RimWorld Character Editor</h1>
+    
+    <div class="char-manager">
+      <label style="margin:0;">キャラ選択:</label>
+      <select id="charSelect" onchange="switchCharacter()" style="width: 140px;"></select>
+      <button class="secondary" onclick="createNewCharacter()">＋新規</button>
+      <button class="danger" onclick="deleteCurrentCharacter()">削除</button>
+    </div>
+
+    <div class="btn-group">
+      <button class="secondary" onclick="exportJSON()">JSON出力</button>
+      <button class="secondary" onclick="importJSON()">JSON読込</button>
+      <button onclick="randomizeAllSkills()">🎲 スキル・情熱を一括ランダム</button>
+      <button onclick="copyAIPrompt()">🤖 AIプロンプトコピー</button>
+    </div>
+  </header>
+
+  <!-- 1. 基本プロフィール & 画像 -->
+  <div class="card">
+    <div class="card-title">1. 基本プロフィール (Identity & Faction)</div>
+    <div class="grid-profile">
+      <div>
+        <label>キャラクター画像</label>
+        <div class="avatar-box" onclick="document.getElementById('avatarInput').click()">
+          <div id="avatarPlaceholder" class="avatar-placeholder">クリックして<br>画像を選択</div>
+          <img id="avatarImg" style="display:none;">
+        </div>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="handleImageUpload(this)">
+      </div>
+
+      <div>
+        <div class="grid-3" style="margin-bottom: 10px;">
+          <div>
+            <label>姓 (Last Name)</label>
+            <input type="text" id="lastName" placeholder="例: 霧雨">
+            <input type="text" id="lastNameKana" placeholder="ふりがな (例: きりさめ)" style="margin-top:4px; font-size:0.8rem;">
+          </div>
+          <div>
+            <label>名 (First Name)</label>
+            <input type="text" id="firstName" placeholder="例: 灰">
+            <input type="text" id="firstNameKana" placeholder="ふりがな (例: かい)" style="margin-top:4px; font-size:0.8rem;">
+          </div>
+          <div>
+            <label>ニックネーム (Nickname)</label>
+            <input type="text" id="nickname" placeholder="例: カイ">
+          </div>
+        </div>
+
+        <div class="grid-4" style="margin-bottom: 10px;">
+          <div><label>性別 (Gender)</label><select id="gender"><option value="">未選択</option><option>男</option><option>女</option><option>その他</option></select></div>
+          <div><label>年齢 (実年齢)</label><input type="number" id="age" placeholder="例: 20"></div>
+          <div><label>クロノ年齢 (肉体年齢)</label><input type="number" id="chronoAge" placeholder="例: 20"></div>
+          <div><label>役割 / 専門分野</label><input type="text" id="role" placeholder="例: リーダー / 研究員"></div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 10px;">
+          <div>
+            <label>所属派閥 (Faction)</label>
+            <select id="factionSelect" onchange="onFactionSelectChange()"></select>
+            <input type="text" id="factionCustom" placeholder="派閥名を直接入力..." style="display:none; margin-top:4px;">
+          </div>
+          <div>
+            <label>信奉思想 (Ideoligion)</label>
+            <input type="text" id="ideology" placeholder="例: 地球的人道主義 / 機械信奉">
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <label>幼少期 (Childhood)</label>
+            <select id="childhood" onchange="onBackstoryChange('childhood')"></select>
+            <input type="text" id="childhoodCustom" placeholder="幼少期を自由入力..." style="display:none; margin-top:4px;">
+          </div>
+          <div>
+            <label>成年期 (Adulthood)</label>
+            <select id="adulthood" onchange="onBackstoryChange('adulthood')"></select>
+            <input type="text" id="adulthoodCustom" placeholder="成年期を自由入力..." style="display:none; margin-top:4px;">
+          </div>
+        </div>
+        <div id="incapableDisplay" class="incapable-box" style="display:none;">
+          ⚠️ 不能作業・欠点: <span id="incapableList">なし</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. スキル & 才能 -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">
+        2. スキル (Character Editor風UI)
+        <button class="secondary" style="padding: 2px 8px; font-size: 0.75rem;" onclick="randomizeAllSkills()">🎲 スキル一括ランダム</button>
+      </div>
+      <div class="skill-list" id="skillListContainer"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        3. 特性・才能 (Traits - バニラ全網羅)
+        <button class="secondary" style="padding: 2px 6px; font-size: 0.75rem;" onclick="addTraitRow()">＋ 枠追加</button>
+      </div>
+      <div id="traitContainer"></div>
+      <div class="trait-desc-box" id="traitDescription">選択した才能の解説を表示します</div>
+    </div>
+  </div>
+
+  <!-- 3. 性格 & 内面構造 -->
+  <div class="card">
+    <div class="card-title">4. 性格・内面構造 (Psychology & Values)</div>
+    <div class="grid-2" style="margin-bottom: 12px;">
+      <div><label>表向きの性格（パブリック・フェイス）</label><textarea id="publicFace" placeholder="日常や初対面で他者に見せる標準的な態度や印象"></textarea></div>
+      <div><label>根底にある価値観・倫理観（コア・ビリーフ）</label><textarea id="coreBelief" placeholder="命の価値、倫理基準、生き残りに対する基本的な考え方"></textarea></div>
+    </div>
+    <div class="grid-3">
+      <div><label>長所と短所（ギャップ・矛盾）</label><textarea id="gap" placeholder="頼りになるが頑固、冷静だが冷酷など表裏一体の性質"></textarea></div>
+      <div><label>自己評価・コンプレックス</label><textarea id="complex" placeholder="自身の嫌いな部分、人知れず抱く劣等感や不安"></textarea></div>
+      <div><label>モチベーション（行動の原動力）</label><textarea id="motivation" placeholder="何のために生き延びようとしているか（帰郷、仲間保護など）"></textarea></div>
+    </div>
+  </div>
+
+  <!-- 4. 過去・背景とトラウマ -->
+  <div class="card">
+    <div class="card-title">5. 過去・背景とトラウマ (Backstory & Trauma)</div>
+    <div class="grid-2" style="margin-bottom: 12px;">
+      <div><label>幼少期の環境</label><textarea id="childEnv" placeholder="家庭環境、教育方針、成長過程での出来事"></textarea></div>
+      <div><label>人生の転機（ターニングポイント）</label><textarea id="turningPoint" placeholder="現在の性格や人生観を決定づけた過去の事件・出来事"></textarea></div>
+    </div>
+    <div class="grid-2">
+      <div><label>トラウマと「心の傷」</label><textarea id="trauma" placeholder="過去の失敗、失った大切なもの、消えない記憶"></textarea></div>
+      <div><label>トリガー（感情の爆発ポイント）【重要】</label><textarea id="trigger" placeholder="過剰反応してしまう特定の言葉・状況・音・匂いなど"></textarea></div>
+    </div>
+  </div>
+
+  <!-- 5. 人間関係と「境界線」 -->
+  <div class="card">
+    <div class="card-title">6. 人間関係と「境界線」 (Relationships)</div>
+    <div class="grid-3">
+      <div><label>仲間（他メンバー）へのスタンス</label><textarea id="relParty" placeholder="仲間に対する心理的距離、他者（部外者）との扱いの差"></textarea></div>
+      <div><label>不満やストレスの溜め込み方</label><textarea id="stressType" placeholder="我慢して溜め込む、皮肉を言う、すぐに不満を口に出すなど"></textarea></div>
+      <div><label>衝突（喧嘩）した時の行動パターン</label><textarea id="fightPattern" placeholder="論理的に詰め寄る、黙り込む、大声で怒鳴るなど"></textarea></div>
+    </div>
+  </div>
+
+  <!-- 6. 適応度 & 癖 -->
+  <div class="card">
+    <div class="card-title">7. アナーキア適応度 & 日常の癖 (Adaptability & Quirks)</div>
+    <div class="grid-3" style="margin-bottom: 12px;">
+      <div><label>文明への執着（グリッターワールドへの想い）</label><textarea id="glitterAffinity" placeholder="高度な文明生活への未練や帰還への意欲"></textarea></div>
+      <div><label>環境変化へのストレス耐性</label><textarea id="stressResist" placeholder="不衛生、不味い食事、怪我、過労などに対する耐久度"></textarea></div>
+      <div><label>アナーキアのイデオロギー（現地の狂気）への反応</label><textarea id="anarchiaReaction" placeholder="現地の過激なカルトや略奪者に対する感情"></textarea></div>
+    </div>
+    <div class="grid-3">
+      <div><label>思考の癖（コンフォートゾーン）</label><textarea id="habit" placeholder="考え事をする際や不安な時に無意識にとる行動"></textarea></div>
+      <div><label>好きなもの / 嫌いなもの</label><textarea id="likesDislikes" placeholder="好みの食べ物、時間帯、得意/苦手な状況など"></textarea></div>
+      <div><label>人間らしい隙・弱点</label><textarea id="weakness" placeholder="親しみを感じさせる不器用な部分や弱点"></textarea></div>
+    </div>
+  </div>
+
+  <!-- 7. メモ欄 -->
+  <div class="card">
+    <div class="card-title">8. メモ欄</div>
+    <textarea id="memo" class="memo-textarea" placeholder="その他補足設定、セッション用メモ、AIストーリー用エピソード下書きなど..."></textarea>
+  </div>
+</div>
+
+<script>
+const SKILLS = ["射撃", "格闘", "社交", "動物", "医学", "料理", "建築", "栽培", "採掘", "芸術", "工芸", "知力"];
+
+const SKILL_RANKS = [
+  "完全な素人", "初学者", "見習い", "そこそこ", "一人前", "熟練者", "熟練したプロ", "駆け出しのプロ",
+  "卓越したプロ", "専門家", "マスター", "達人", "伝説的", "世界的マスター", "歴史的名人",
+  "超人的", "神業", "超絶神技", "神の領域", "極限の神", "全知全能"
+];
+
+const BACKSTORIES_DATA = {
+  childhood: {
+    "選択なし": { mods: {}, incap: "" },
+    "直接入力 (カスタム)": { mods: {}, incap: "" },
+    "捨て子 (Abandoned child 1)": { mods: { 射撃: 1, 格闘: 1, 社交: 1, 建築: 1 }, incap: "消火・料理・掃除" },
+    "捨て子 (Abandoned child 2)": { mods: { 格闘: 3, 社交: -2, 工芸: 3 }, incap: "" },
+    "拉致被害者 (Abductee 1)": { mods: { 格闘: 4, 社交: -2, 建築: 2, 採掘: 4, 知力: -3 }, incap: "研究" },
+    "拉致被害者 (Abductee 2)": { mods: { 格闘: 2, 料理: 2, 建築: 2, 工芸: 2 }, incap: "" },
+    "アカデミーの学生 (Academy student)": { mods: { 社交: 3, 工芸: 2 }, incap: "掃除" },
+    "呪われた子 (Accursed child)": { mods: { 医学: 4, 建築: -1, 知力: 5 }, incap: "消火・採掘・運搬・掃除" },
+    "冒険の子 (Adventuring child)": { mods: { 建築: 2, 工芸: 3 }, incap: "" },
+    "アマチュア天文家 (Amateur astronomer)": { mods: { 知力: 6 }, incap: "" },
+    "アマチュアの植物学者 (Amateur botanist)": { mods: { 栽培: 4, 採掘: 2 }, incap: "料理" },
+    "アマチュアエンジニア (Amateur engineer)": { mods: { 射撃: 1, 建築: 2, 採掘: 1, 知力: 2 }, incap: "栽培・収獲・掃除" },
+    "黙示録の子 (Apocalypse child)": { mods: { 射撃: 2, 格闘: 3, 工芸: 2 }, incap: "研究" },
+    "黙示録の生存者 (Apocalypse survivor)": { mods: { 射撃: 4, 芸術: -3, 知力: -3 }, incap: "" },
+    "黙示録スミス (Apocalypse smith)": { mods: { 格闘: 2, 工芸: 5 }, incap: "" },
+    "貴族 (Aristocrat)": { mods: { 社交: 2, 料理: 2 }, incap: "採掘・収獲・運搬・掃除" },
+    "巧みなペテン師 (Artful dodger)": { mods: { 射撃: 1, 格闘: 2, 社交: 3 }, incap: "治療・料理・栽培・収獲・鍛冶・裁縫・芸術・工芸・掃除" },
+    "熟練農家 (Artisan farmer)": { mods: { 射撃: -2, 料理: 2, 栽培: 7, 知力: -2 }, incap: "狩猟" },
+    "アスペルガーの反乱 (Aspergers rebel)": { mods: { 射撃: 2, 社交: -3, 知力: 5 }, incap: "治療・栽培・収獲" },
+    "夢は技術者 (Aspiring engineer)": { mods: { 社交: -2, 建築: 2, 栽培: 2, 工芸: 2, 知力: 4 }, incap: "" },
+    "夢はポップ・アイドル (Aspiring pop idol)": { mods: { 射撃: -4, 格闘: -4, 社交: 4, 栽培: -2, 採掘: 4 }, incap: "栽培・採掘・収獲・運搬・掃除" },
+    "厄介なオタク (Awkward nerd)": { mods: { 格闘: -2, 社交: -2, 工芸: 4, 知力: 5 }, incap: "消火" },
+    "ブラックジャックプレーヤー (Blackjack player)": { mods: { 射撃: 4, 格闘: 2, 社交: 2, 知力: 3 }, incap: "消火・狩猟" },
+    "祝福された子 (Blessed child)": { mods: { 社交: 3, 医学: 2, 採掘: 1 }, incap: "" },
+    "ボーン・コレクター (Bone collector)": { mods: { 射撃: -3, 格闘: -3, 社交: -3, 医学: 2, 建築: 2, 栽培: 2, 採掘: 2 }, incap: "" },
+    "本のお虫 (Bookworm)": { mods: { 社交: -2, 医学: 2, 栽培: 2, 知力: 2 }, incap: "" },
+    "ボーイスカウト (Boy scout)": { mods: { 射撃: 2, 医学: 2, 建築: 2 }, incap: "" },
+    "少年兵 (Boy soldier)": { mods: { 射撃: 4, 格闘: 2 }, incap: "治療" },
+    "残忍な泥棒 (Brutal thief)": { mods: { 射撃: 2, 格闘: 4, 社交: -2, 動物: 2, 建築: -2 }, incap: "治療・芸術" },
+    "士官候補生 (Cadet)": { mods: { 料理: 3, 工芸: 3, 知力: 3 }, incap: "狩猟" },
+    "キャラバンの子供 (Caravan child)": { mods: { 社交: 2, 採掘: 2 }, incap: "" },
+    "猫飼い (Cat herder)": { mods: { 社交: 2, 料理: 3 }, incap: "運搬・掃除" },
+    "洞窟の子 (Cave child)": { mods: { 建築: 3, 栽培: 3 }, incap: "" },
+    "caveworldの入札者 (Caveworld tender)": { mods: { 射撃: -3, 栽培: 4, 採掘: 2 }, incap: "" },
+    "Caveworldのトンネルラー (Caveworld tunneler)": { mods: { 射撃: -2, 料理: 1, 栽培: 6 }, incap: "鍛冶・裁縫・工芸・研究" },
+    "チェスマスター (Chess master)": { mods: { 社交: 4, 知力: 2 }, incap: "" },
+    "漂流した子供 (Child of drifters)": { mods: { 射撃: 4, 格闘: -2, 社交: -3, 芸術: 6 }, incap: "消火・料理・建築・修理・栽培・採掘・収獲・鍛冶・裁縫・工芸" },
+    "神童 (Child prodigy)": { mods: { 知力: 6 }, incap: "" },
+    "奴隷の子 (Child slave)": { mods: { 採掘: 2, 工芸: 2 }, incap: "学術" },
+    "少年スパイ (Child spy)": { mods: { 射撃: 2, 社交: 3 }, incap: "" },
+    "人気者の子 (Child star)": { mods: { 社交: 5, 芸術: 3 }, incap: "単純労働" },
+    "サーカスの役者 (Circus performer)": { mods: { 社交: 3, 芸術: 3 }, incap: "" },
+    "培養されたクローン (Clone-farmed)": { mods: { 格闘: 2, 建築: 2 }, incap: "" },
+    "コロシアムの清掃人 (Coliseum cleaner)": { mods: { 格闘: 2, 医学: 2 }, incap: "" }
+  },
+  adulthood: {
+    "選択なし": { mods: {}, incap: "" },
+    "直接入力 (カスタム)": { mods: {}, incap: "" },
+    "エースの戦闘機のパイロット (Ace fighter pilot)": { mods: { 射撃: 3, 格闘: 2, 社交: 3, 動物: 3, 栽培: -3, 知力: 2 }, incap: "" },
+    "星の侍祭 (Acolyte of stars)": { mods: { 社交: -3, 医学: 4, 栽培: 7, 知力: -3 }, incap: "狩猟・収獲・運搬・掃除" },
+    "俳優 (Actor)": { mods: { 社交: 8, 工芸: 3 }, incap: "収獲・運搬・掃除" },
+    "中毒の弁護士 (Addiction counsel)": { mods: { 社交: 8, 動物: 3, 芸術: 3, 工芸: 3 }, incap: "" },
+    "航空宇宙エンジニア (Aerospace engineer)": { mods: { 射撃: 2, 社交: 2, 料理: 2, 栽培: 2, 知力: 4 }, incap: "栽培・収獲・掃除" },
+    "AIプログラマー (AI programmer)": { mods: { 工芸: 6, 知力: 7 }, incap: "栽培・収獲" },
+    "AIの研究者 (AI researcher)": { mods: { 格闘: -2, 社交: 4, 採掘: -2, 工芸: 1, 知力: 6 }, incap: "収獲・運搬・掃除" },
+    "アルコールトラック運転手 (Alcoholic trucker)": { mods: { 射撃: 2, 格闘: 2, 栽培: 4 }, incap: "治療・看守・芸術・掃除・研究" },
+    "建築家 (Architect)": { mods: { 料理: 5, 栽培: 7, 工芸: -3 }, incap: "収獲・運搬・掃除" },
+    "陸軍コック (Army cook)": { mods: { 射撃: 2, 格闘: 2, 動物: -2, 医学: 3, 料理: 2, 工芸: 1, 知力: -2 }, incap: "消火・治療・看守" },
+    "陸軍の科学者 (Army scientist)": { mods: { 動物: 2, 知力: 8 }, incap: "" },
+    "画学生 (Art student)": { mods: { 社交: 1, 医学: -1, 料理: -2, 建築: -1, 芸術: 8, 工芸: 2 }, incap: "採掘" },
+    "機巧工匠 (Artificer rampant)": { mods: { 動物: 2, 料理: 2, 工芸: 8, 知力: 6 }, incap: "" },
+    "禁欲的な司祭 (Ascetic priest)": { mods: { 動物: 2, 医学: 2, 建築: 3 }, incap: "看守・狩猟" },
+    "暗殺者 (Assassin 1)": { mods: { 射撃: 7, 格闘: 4 }, incap: "治療・料理・栽培・収獲・鍛冶・裁縫・芸術・工芸・掃除" },
+    "暗殺者 (Assassin 2)": { mods: { 射撃: 10, 格闘: 10, 料理: -2, 建築: -2, 栽培: -2 }, incap: "治療・看守・料理・建築・修理・栽培・採掘・収獲・鍛冶・裁縫・研究" },
+    "AWOL兵士 (AWOL soldier)": { mods: { 射撃: 6, 格闘: 5 }, incap: "" },
+    "悪いマジシャン (Bad magician)": { mods: { 料理: -2, 栽培: -2 }, incap: "" },
+    "旅のリーダー (Bandit leader)": { mods: { 射撃: 5, 格闘: 5, 社交: 2 }, incap: "掃除・研究" },
+    "追放された兵士 (Banished Soldier)": { mods: { 格闘: 7 }, incap: "" },
+    "バーテンダー (Bartender)": { mods: { 格闘: 2, 社交: 2, 医学: 1 }, incap: "" },
+    "戦場技術者 (Battlefield tech)": { mods: { 射撃: 3, 医学: -3, 料理: 4, 工芸: 4, 知力: 4 }, incap: "消火・栽培・収獲" },
+    "行動調査 (Behaviour research)": { mods: { 格闘: 1, 社交: 2, 動物: 6, 医学: -2, 採掘: -3, 知力: 8 }, incap: "芸術" },
+    "生物圏マネージャー (Biosphere manager)": { mods: { 射撃: -4, 動物: 6, 採掘: 6 }, incap: "料理・収獲・鍛冶・裁縫・工芸・運搬・掃除" },
+    "鍛冶屋 (Blacksmith 1)": { mods: { 射撃: -5, 格闘: 4, 工芸: 6 }, incap: "研究" },
+    "鍛冶屋 (Blacksmith 2)": { mods: { 格闘: 2, 採掘: 2, 工芸: 8 }, incap: "" },
+    "ボディーガード (Bodyguard)": { mods: { 射撃: 4, 格闘: 4, 社交: -3 }, incap: "看守" },
+    "賞金稼ぎ (Bounty hunter 1)": { mods: { 射撃: 5, 格闘: 3, 社交: 2, 工芸: 2 }, incap: "" },
+    "賞金稼ぎ (Bounty hunter 2)": { mods: { 射撃: 6, 格闘: 4, 動物: 2 }, incap: "掃除" },
+    "賞金稼ぎ (Bounty hunter 3)": { mods: { 射撃: 8, 格闘: 5 }, incap: "" },
+    "山賊 (Brigand)": { mods: { 射撃: 2, 格闘: 3, 動物: 1, 医学: 2, 料理: 2, 工芸: 1 }, incap: "" },
+    "ビジネスギャング (Business gangster)": { mods: { 射撃: 3, 格闘: 5, 社交: 7, 芸術: 2 }, incap: "治療・栽培・収獲・掃除" },
+    "輸送パイロット (Cargo pilot)": { mods: { 射撃: 4, 格闘: 2, 社交: 1, 料理: 2, 採掘: 1 }, incap: "消火・料理・掃除" },
+    "漂流者 (Castaway 1)": { mods: { 格闘: 5, 社交: -3, 動物: 3, 料理: 4 }, incap: "看守・芸術・研究" },
+    "漂流者 (Castaway 2)": { mods: { 料理: 2, 建築: 2, 栽培: 3, 採掘: 2 }, incap: "" }
+  }
+};
+
+const TRAITS_VANILLA = [
+  { name: "選択なし", desc: "選択されていません" },
+  { name: "楽観的 (Optimist)", desc: "常に前向きで心情に常時 +6 のボーナス。" },
+  { name: "悲観的 (Pessimist)", desc: "物事を悪く捉えやすく心情に常時 -6 のペナルティ。" },
+  { name: "神経質 (Nervous)", desc: "精神崩壊を起こしやすいが、作業速度がわずかに上昇。" },
+  { name: "精神堅固 (Iron-willed)", desc: "精神崩壊の閾値が非常に低く、精神的にタフ。" },
+  { name: "サイコパス (Psychopath)", desc: "他人の苦しみや死に同情せず、感情デバフを受けない。" },
+  { name: "血に飢えた (Bloodlust)", desc: "人が死ぬのを見たり、敵を殺害することに喜びを感じる。" },
+  { name: "親切 (Kind)", desc: "他人に優しく接し、侮辱することがない。" },
+  { name: "不快な声 (Abrasive)", desc: "直言的で他人を侮辱しやすく、人間関係が悪化しやすい。" },
+  { name: "引きこもり (Recluse)", desc: "少人数の拠点を好み、入植者が増えるとストレスを感じる。" },
+  { name: "超記憶能力 (Great Memory)", desc: "スキルの経年減衰速度が非常に遅い。" },
+  { name: "勤勉 (Industrious)", desc: "作業速度が常時 +20% 上昇する。" },
+  { name: "怠け者 (Lazy)", desc: "作業速度が -20% 低下する。" },
+  { name: "器用 (Too Smart)", desc: "学習速度が +75% 上昇するが、精神崩壊しやすい。" },
+  { name: "早歩き (Fast Walker)", desc: "移動速度が少し上がる。" },
+  { name: "快走 (Jogger)", desc: "移動速度が大幅に上がる。" },
+  { name: "弱虫 (Wimp)", desc: "痛みに非常に弱く、わずかなダメージでショック状態になる。" },
+  { name: "頑丈 (Tough)", desc: "受けるダメージが常時 25% 軽減される。" },
+  { name: "慎重な射撃手 (Careful Shooter)", desc: "照準時間が長くなるが、射撃精度が大幅に上がる。" },
+  { name: "引き金ハッピー (Trigger-happy)", desc: "照準時間が大幅に短縮されるが、射撃精度が落ちる。" },
+  { name: "格闘家 (Brawler)", desc: "近接格闘が得意だが、遠距離武器を持つと機嫌が悪くなる。" },
+  { name: "義体狂 (Transhumanist)", desc: "義体改造を好み、生体パーツに不満を持つ。" },
+  { name: "自然主義者 (Body Purist)", desc: "義体改造を嫌い、機械パーツに強い拒絶を示す。" },
+  { name: "精神的過敏 (Psychic Sensitivity)", desc: "精神波動やサイキック効果の影響を強く受ける。" },
+  { name: "精神的鈍感 (Psychic Dull)", desc: "精神波動の影響を受けにくい。" },
+  { name: "夜型 (Night Owl)", desc: "夜間に起きていると心情が上がり、昼間働くと心情が下がる。" },
+  { name: "美食家 (Gourmand)", desc: "料理スキルが上がりやすいが、空腹になりやすく食糧泥棒を起こす。" },
+  { name: "ヌーディスト (Nudist)", desc: "服を着ないことで心情が上がる。" }
+];
+
+let characters = {};
+let currentId = "";
+
+let skillState = {};
+SKILLS.forEach(s => skillState[s] = { userVal: 0, bsMod: 0, passion: 0 });
+
+window.onload = () => {
+  initSkillUI();
+  initBackstorySelects();
+  initDefaultTraitRows();
+  loadAllCharactersFromStorage();
+};
+
+function initSkillUI() {
+  const container = document.getElementById("skillListContainer");
+  container.innerHTML = "";
+
+  SKILLS.forEach(s => {
+    const row = document.createElement("div");
+    row.className = "skill-row";
+    row.innerHTML = `
+      <div class="skill-label-box">
+        <span class="skill-name-str">${s}</span>
+        <span class="passion-fire fire-0" id="fire-${s}" onclick="togglePassion('${s}')">🔥🔥</span>
+      </div>
+      <div class="skill-bar-container">
+        <div class="skill-bar-bg-dark" id="bar-dark-${s}" style="width: 0%;"></div>
+        <div class="skill-bar-bg-green" id="bar-green-${s}" style="width: 0%;"></div>
+        <div class="skill-val-num" id="val-num-${s}">0</div>
+      </div>
+      <div class="skill-rank-desc" id="rank-desc-${s}">完全な素人</div>
+      <button class="skill-btn-step" onclick="stepSkill('${s}', -1)">ー</button>
+      <button class="skill-btn-step" onclick="stepSkill('${s}', 1)">＋</button>
+      <button class="skill-btn-random" onclick="randomizeSingleSkill('${s}')">🎲</button>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function initBackstorySelects() {
+  const cSel = document.getElementById("childhood");
+  const aSel = document.getElementById("adulthood");
+  cSel.innerHTML = ""; aSel.innerHTML = "";
+
+  Object.keys(BACKSTORIES_DATA.childhood).forEach(k => cSel.innerHTML += `<option value="${k}">${k}</option>`);
+  Object.keys(BACKSTORIES_DATA.adulthood).forEach(k => aSel.innerHTML += `<option value="${k}">${k}</option>`);
+}
+
+function onBackstoryChange(type) {
+  const sel = document.getElementById(type);
+  const customInput = document.getElementById(type + "Custom");
+  if (sel.value === "直接入力 (カスタム)") {
+    customInput.style.display = "block";
+  } else {
+    customInput.style.display = "none";
+  }
+
+  recalcBackstoryMods();
+  autoSaveCurrent();
+}
+
+function recalcBackstoryMods() {
+  SKILLS.forEach(s => skillState[s].bsMod = 0);
+
+  const cVal = document.getElementById("childhood").value;
+  const aVal = document.getElementById("adulthood").value;
+
+  const cData = BACKSTORIES_DATA.childhood[cVal] || { mods: {}, incap: "" };
+  const aData = BACKSTORIES_DATA.adulthood[aVal] || { mods: {}, incap: "" };
+
+  for (let s in cData.mods) { if (skillState[s]) skillState[s].bsMod += cData.mods[s]; }
+  for (let s in aData.mods) { if (skillState[s]) skillState[s].bsMod += aData.mods[s]; }
+
+  // 生い立ち変更時、UserValが補正を下回らないように補正
+  SKILLS.forEach(s => {
+    if (skillState[s].userVal < skillState[s].bsMod) {
+      skillState[s].userVal = skillState[s].bsMod;
+    }
+  });
+
+  let incaps = [];
+  if (cData.incap) incaps.push(cData.incap);
+  if (aData.incap) incaps.push(aData.incap);
+
+  const incapBox = document.getElementById("incapableDisplay");
+  if (incaps.length > 0) {
+    incapBox.style.display = "block";
+    document.getElementById("incapableList").innerText = incaps.join(" / ");
+  } else {
+    incapBox.style.display = "none";
+  }
+
+  renderSkills();
+}
+
+// 数値のダイス生成（平均2〜3、情熱があると高め）
+function getRandomSkillValue(hasPassion) {
+  const rand = Math.random() * 100;
+  let baseVal = 0;
+
+  if (rand < 40) baseVal = Math.random() < 0.6 ? 0 : 1;
+  else if (rand < 75) baseVal = 2;
+  else if (rand < 90) baseVal = 3;
+  else if (rand < 97) baseVal = 4;
+  else if (rand < 99.5) baseVal = Math.floor(Math.random() * 3) + 5;
+  else if (rand < 99.9) baseVal = Math.floor(Math.random() * 4) + 8;
+  else baseVal = Math.floor(Math.random() * 7) + 12;
+
+  if (hasPassion > 0 && baseVal < 18) {
+    baseVal = Math.min(18, baseVal + Math.floor(Math.random() * 3) + hasPassion);
+  }
+
+  return baseVal;
+}
+
+// 1. 個別ランダム
+function randomizeSingleSkill(skill) {
+  const st = skillState[skill];
+  const pRand = Math.random();
+  if (pRand < 0.7) st.passion = 0;
+  else if (pRand < 0.9) st.passion = 1;
+  else st.passion = 2;
+
+  const rawVal = getRandomSkillValue(st.passion);
+  st.userVal = Math.max(st.bsMod, rawVal);
+
+  renderSkills();
+  autoSaveCurrent();
+}
+
+// 2. 全体ランダム（情熱ポイント分配：平均5〜6pt［情熱2=2pt, 情熱1=1pt］）
+function randomizeAllSkills() {
+  // ① まず全員の情熱をリセット
+  SKILLS.forEach(s => skillState[s].passion = 0);
+
+  // ② 総ポイントを 4 〜 7pt（平均5〜6pt）で決定
+  const targetPtsChoices = [4, 5, 5, 6, 6, 6, 7];
+  let budget = targetPtsChoices[Math.floor(Math.random() * targetPtsChoices.length)];
+
+  // ③ ポイントが尽きるまで、ランダムなスキルに情熱を割り振り
+  let attempts = 0;
+  while (budget > 0 && attempts < 100) {
+    attempts++;
+    const randomSkill = SKILLS[Math.floor(Math.random() * SKILLS.length)];
+    const st = skillState[randomSkill];
+
+    if (st.passion < 2) {
+      st.passion += 1;
+      budget -= 1;
+    }
+  }
+
+  // ④ 割り振った情熱をベースに数値を生成（生い立ち補正値より小さくならないように保護）
+  SKILLS.forEach(s => {
+    const st = skillState[s];
+    const rawVal = getRandomSkillValue(st.passion);
+    st.userVal = Math.max(st.bsMod, rawVal);
+  });
+
+  renderSkills();
+  autoSaveCurrent();
+}
+
+function togglePassion(skill) {
+  skillState[skill].passion = (skillState[skill].passion + 1) % 3;
+  renderSkills();
+  autoSaveCurrent();
+}
+
+function stepSkill(skill, delta) {
+  let st = skillState[skill];
+  let cur = st.userVal;
+  let minAllowed = st.bsMod;
+  cur = Math.min(20, Math.max(minAllowed, cur + delta));
+  st.userVal = cur;
+  renderSkills();
+  autoSaveCurrent();
+}
+
+function renderSkills() {
+  SKILLS.forEach(s => {
+    const st = skillState[s];
+
+    const fireEl = document.getElementById(`fire-${s}`);
+    if (st.passion === 0) { fireEl.innerText = "🔥🔥"; fireEl.className = "passion-fire fire-0"; }
+    else if (st.passion === 1) { fireEl.innerText = "🔥"; fireEl.className = "passion-fire fire-1"; }
+    else { fireEl.innerText = "🔥🔥"; fireEl.className = "passion-fire fire-2"; }
+
+    const userVal = Math.min(20, Math.max(0, st.userVal));
+    const bsMod = Math.max(0, st.bsMod);
+
+    const greenWidthVal = Math.min(userVal, bsMod);
+    const darkWidthVal = userVal;
+
+    const greenPct = (greenWidthVal / 20) * 100;
+    const darkPct = (darkWidthVal / 20) * 100;
+
+    document.getElementById(`bar-green-${s}`).style.width = `${greenPct}%`;
+    document.getElementById(`bar-dark-${s}`).style.width = `${darkPct}%`;
+
+    const numEl = document.getElementById(`val-num-${s}`);
+    const rankEl = document.getElementById(`rank-desc-${s}`);
+
+    numEl.innerText = userVal;
+    rankEl.innerText = SKILL_RANKS[userVal] || "神の領域";
+  });
+}
+
+function initDefaultTraitRows() {
+  const container = document.getElementById("traitContainer");
+  container.innerHTML = "";
+  for (let i = 0; i < 4; i++) addTraitRow();
+}
+
+function addTraitRow(selectedVal = 0) {
+  const container = document.getElementById("traitContainer");
+  const row = document.createElement("div");
+  row.className = "trait-row";
+
+  let options = "";
+  TRAITS_VANILLA.forEach((t, idx) => {
+    options += `<option value="${idx}" ${idx == selectedVal ? 'selected' : ''}>${t.name}</option>`;
+  });
+
+  row.innerHTML = `
+    <select class="trait-select" onchange="updateTraits()">${options}</select>
+    <button class="danger" style="padding: 2px 6px; font-size: 0.75rem;" onclick="removeTraitRow(this)">削除</button>
+  `;
+  container.appendChild(row);
+  updateTraits();
+}
+
+function removeTraitRow(btn) {
+  btn.parentElement.remove();
+  updateTraits();
+}
+
+function updateTraits() {
+  const selects = document.querySelectorAll(".trait-select");
+  let descs = [];
+  selects.forEach(sel => {
+    const idx = sel.value;
+    if (idx > 0) descs.push(`【${TRAITS_VANILLA[idx].name}】${TRAITS_VANILLA[idx].desc}`);
+  });
+  document.getElementById("traitDescription").innerHTML = descs.length > 0 ? descs.join("<br>") : "選択した才能の解説を表示します";
+  autoSaveCurrent();
+}
+
+function handleImageUpload(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const imgData = e.target.result;
+      document.getElementById("avatarImg").src = imgData;
+      document.getElementById("avatarImg").style.display = "block";
+      document.getElementById("avatarPlaceholder").style.display = "none";
+      autoSaveCurrent();
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function updateFactionSelectOptions() {
+  const fSel = document.getElementById("factionSelect");
+  const existingVal = fSel.value;
+  fSel.innerHTML = "";
+
+  let factions = new Set(["アナーキア不時着隊", "アナーキア奉納教団", "グリッターワールド不時着者グループ"]);
+
+  for (let id in characters) {
+    if (characters[id].faction) factions.add(characters[id].faction);
+  }
+
+  fSel.innerHTML += `<option value="直接入力 (新規入力)">直接入力 (新規入力)</option>`;
+  factions.forEach(f => {
+    fSel.innerHTML += `<option value="${f}">${f}</option>`;
+  });
+
+  if (factions.has(existingVal)) fSel.value = existingVal;
+}
+
+function onFactionSelectChange() {
+  const fSel = document.getElementById("factionSelect");
+  const customInput = document.getElementById("factionCustom");
+  if (fSel.value === "直接入力 (新規入力)") {
+    customInput.style.display = "block";
+  } else {
+    customInput.style.display = "none";
+  }
+  autoSaveCurrent();
+}
+
+function loadAllCharactersFromStorage() {
+  const saved = localStorage.getItem("rimworld_chars_data_v8");
+  if (saved) {
+    characters = JSON.parse(saved);
+  } else {
+    const defaultId = "char_" + Date.now();
+    characters[defaultId] = { id: defaultId, nickname: "新規キャラ1" };
+  }
+  refreshCharSelect();
+  updateFactionSelectOptions();
+
+  const keys = Object.keys(characters);
+  if (keys.length > 0) {
+    currentId = keys[0];
+    document.getElementById("charSelect").value = currentId;
+    applyData(characters[currentId]);
+  }
+}
+
+function refreshCharSelect() {
+  const sel = document.getElementById("charSelect");
+  sel.innerHTML = "";
+  for (let id in characters) {
+    const name = characters[id].nickname || characters[id].firstName || "無題のキャラ";
+    sel.innerHTML += `<option value="${id}">${name}</option>`;
+  }
+}
+
+function switchCharacter() {
+  autoSaveCurrent();
+  currentId = document.getElementById("charSelect").value;
+  if (characters[currentId]) {
+    applyData(characters[currentId]);
+  }
+}
+
+function createNewCharacter() {
+  autoSaveCurrent();
+  const newId = "char_" + Date.now();
+  characters[newId] = { id: newId, nickname: "新規キャラ" };
+  currentId = newId;
+  refreshCharSelect();
+  updateFactionSelectOptions();
+  document.getElementById("charSelect").value = currentId;
+  applyData(characters[currentId]);
+}
+
+function deleteCurrentCharacter() {
+  if (Object.keys(characters).length <= 1) {
+    alert("最後の1つのキャラクターは削除できません。");
+    return;
+  }
+  if (confirm("現在選択中のキャラクターを削除しますか？")) {
+    delete characters[currentId];
+    saveAllToStorage();
+    loadAllCharactersFromStorage();
+  }
+}
+
+function autoSaveCurrent() {
+  if (!currentId) return;
+  const data = gatherFormData();
+  data.id = currentId;
+  characters[currentId] = data;
+  saveAllToStorage();
+  
+  const sel = document.getElementById("charSelect");
+  const opt = sel.querySelector(`option[value="${currentId}"]`);
+  if (opt) opt.innerText = data.nickname || data.firstName || "無題のキャラ";
+}
+
+function saveAllToStorage() {
+  localStorage.setItem("rimworld_chars_data_v8", JSON.stringify(characters));
+}
+
+function gatherFormData() {
+  const fields = ["lastName","lastNameKana","firstName","firstNameKana","nickname","gender","age","chronoAge","role","ideology","childhood","childhoodCustom","adulthood","adulthoodCustom","publicFace","coreBelief","gap","complex","motivation","childEnv","turningPoint","trauma","trigger","relParty","stressType","fightPattern","glitterAffinity","stressResist","anarchiaReaction","habit","likesDislikes","weakness","memo"];
+  let data = { skills: skillState, traits: [], avatar: "", faction: "" };
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    if (el) data[f] = el.value;
+  });
+
+  const fSel = document.getElementById("factionSelect");
+  data.faction = (fSel.value === "直接入力 (新規入力)") ? document.getElementById("factionCustom").value : fSel.value;
+
+  document.querySelectorAll(".trait-select").forEach(sel => data.traits.push(sel.value));
+
+  const img = document.getElementById("avatarImg");
+  if (img.style.display !== "none") data.avatar = img.src;
+
+  return data;
+}
+
+function applyData(data) {
+  const fields = ["lastName","lastNameKana","firstName","firstNameKana","nickname","gender","age","chronoAge","role","ideology","childhood","childhoodCustom","adulthood","adulthoodCustom","publicFace","coreBelief","gap","complex","motivation","childEnv","turningPoint","trauma","trigger","relParty","stressType","fightPattern","glitterAffinity","stressResist","anarchiaReaction","habit","likesDislikes","weakness","memo"];
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    if (el) el.value = data[f] !== undefined ? data[f] : "";
+  });
+
+  updateFactionSelectOptions();
+  const fSel = document.getElementById("factionSelect");
+  const fCustom = document.getElementById("factionCustom");
+  if (data.faction && Array.from(fSel.options).some(o => o.value === data.faction)) {
+    fSel.value = data.faction;
+    fCustom.style.display = "none";
+  } else if (data.faction) {
+    fSel.value = "直接入力 (新規入力)";
+    fCustom.value = data.faction;
+    fCustom.style.display = "block";
+  } else {
+    fSel.value = "直接入力 (新規入力)";
+    fCustom.value = "";
+    fCustom.style.display = "block";
+  }
+
+  if (data.skills) {
+    skillState = data.skills;
+  } else {
+    SKILLS.forEach(s => skillState[s] = { userVal: 0, bsMod: 0, passion: 0 });
+  }
+
+  if (data.traits && data.traits.length > 0) {
+    const container = document.getElementById("traitContainer");
+    container.innerHTML = "";
+    data.traits.forEach(val => addTraitRow(val));
+  } else {
+    initDefaultTraitRows();
+  }
+
+  const img = document.getElementById("avatarImg");
+  const placeholder = document.getElementById("avatarPlaceholder");
+  if (data.avatar) {
+    img.src = data.avatar;
+    img.style.display = "block";
+    placeholder.style.display = "none";
+  } else {
+    img.src = "";
+    img.style.display = "none";
+    placeholder.style.display = "block";
+  }
+
+  onBackstoryChange('childhood');
+  onBackstoryChange('adulthood');
+  updateTraits();
+}
+
+function copyAIPrompt() {
+  const getVal = id => document.getElementById(id).value;
+  const getBS = type => {
+    const val = getVal(type);
+    return val === "直接入力 (カスタム)" ? getVal(type + "Custom") : val;
+  };
+
+  const fSel = document.getElementById("factionSelect");
+  const factionVal = (fSel.value === "直接入力 (新規入力)") ? getVal("factionCustom") : fSel.value;
+
+  let traitsText = [];
+  document.querySelectorAll(".trait-select").forEach(sel => {
+    if (sel.value > 0) traitsText.push(TRAITS_VANILLA[sel.value].name);
+  });
+
+  let skillsText = [];
+  SKILLS.forEach(s => {
+    const fire = ["", "★", "★★"][skillState[s].passion];
+    const total = Math.min(20, skillState[s].userVal);
+    if (total > 0 || fire) skillsText.push(`${s}:${total}${fire}`);
+  });
+
+  const prompt = `
+# キャラクター設定: ${getVal("lastName")} ${getVal("firstName")} (${getVal("nickname")})
+
+## 1. 基本情報
+- 氏名: ${getVal("lastName")} (${getVal("lastNameKana")}) ${getVal("firstName")} (${getVal("firstNameKana")}) [呼び名: ${getVal("nickname")}]
+- 性別: ${getVal("gender") || "未設定"} / 年齢: ${getVal("age") || "未設定"}歳 (肉体年齢: ${getVal("chronoAge") || "未設定"}歳)
+- 役割: ${getVal("role")} / 所属派閥: ${factionVal || "無所属"} / 思想: ${getVal("ideology")}
+- 生い立ち: 幼少期[${getBS("childhood")}] / 成年期[${getBS("adulthood")}]
+- 才能・特性: ${traitsText.join(", ") || "なし"}
+- スキルステータス: ${skillsText.join(" | ")}
+
+## 2. 性格・内面構造
+- 表向きの性格: ${getVal("publicFace")}
+- 根底の倫理観・価値観: ${getVal("coreBelief")}
+- 長所と短所(ギャップ): ${getVal("gap")}
+- 自己評価・コンプレックス: ${getVal("complex")}
+- モチベーション: ${getVal("motivation")}
+
+## 3. 過去・背景とトラウマ
+- 幼少期の環境: ${getVal("childEnv")}
+- 人生の転機: ${getVal("turningPoint")}
+- トラウマ・心の傷: ${getVal("trauma")}
+- 感情爆発のトリガー: ${getVal("trigger")}
+
+## 4. 人間関係と「境界線」
+- 仲間へのスタンス: ${getVal("relParty")}
+- ストレスの溜め込み方: ${getVal("stressType")}
+- 衝突時の行動パターン: ${getVal("fightPattern")}
+
+## 5. アナーキア適応度 & 日常の癖
+- 文明への執着: ${getVal("glitterAffinity")}
+- ストレス耐性: ${getVal("stressResist")}
+- 現地イデオロギーへの反応: ${getVal("anarchiaReaction")}
+- 思考の癖: ${getVal("habit")}
+- 好き/嫌い: ${getVal("likesDislikes")}
+- 人間らしい弱点: ${getVal("weakness")}
+
+## 6. メモ
+${getVal("memo")}
+`.trim();
+
+  navigator.clipboard.writeText(prompt).then(() => {
+    alert("🤖 AIプロンプトをクリップボードにコピーしました！");
+  });
+}
+
+function exportJSON() {
+  const data = gatherFormData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${data.nickname || "character"}_editor.json`;
+  a.click();
+}
+
+function importJSON() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+  input.onchange = e => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = event => {
+      const data = JSON.parse(event.target.result);
+      data.id = "char_" + Date.now();
+      characters[data.id] = data;
+      currentId = data.id;
+      saveAllToStorage();
+      refreshCharSelect();
+      updateFactionSelectOptions();
+      document.getElementById("charSelect").value = currentId;
+      applyData(data);
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+document.querySelectorAll("input, textarea, select").forEach(el => {
+  el.addEventListener("input", autoSaveCurrent);
+});
+</script>
+</body>
+</html>
