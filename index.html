@@ -77,13 +77,13 @@
     .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
     .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
     .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
     
     .grid-profile { 
       display: grid; 
       grid-template-columns: 160px 1fr; 
       gap: 15px; 
     }
-    /* スマホなど画面が狭いときはプロフィールを縦並びにする */
     @media (max-width: 768px) {
       .grid-profile { grid-template-columns: 1fr; }
       .avatar-box { margin: 0 auto; }
@@ -142,7 +142,7 @@
     .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
     .avatar-placeholder { text-align: center; color: var(--text-muted); font-size: 0.75rem; }
 
-    /* --- スキルUI（スマホ対応幅調整） --- */
+    /* --- スキルUI --- */
     .skill-list { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
     .skill-row {
       display: flex;
@@ -344,10 +344,11 @@
           </div>
         </div>
 
-        <div class="grid-4" style="margin-bottom: 8px;">
+        <div class="grid-5" style="margin-bottom: 8px;">
+          <div><label>種族</label><input type="text" id="race" placeholder="例: 人間 / イースキン"></div>
           <div><label>性別</label><select id="gender"><option value="">未選択</option><option>男</option><option>女</option><option>その他</option></select></div>
-          <div><label>実年齢</label><input type="number" id="age" placeholder="20"></div>
-          <div><label>肉体年齢</label><input type="number" id="chronoAge" placeholder="20"></div>
+          <div><label>年齢</label><input type="number" id="age" placeholder="20"></div>
+          <div><label>クロノ年齢</label><input type="number" id="chronoAge" placeholder="20"></div>
           <div><label>役割</label><input type="text" id="role" placeholder="リーダー"></div>
         </div>
 
@@ -1076,7 +1077,7 @@ function saveAllToStorage() {
 }
 
 function gatherFormData() {
-  const fields = ["lastName","lastNameKana","firstName","firstNameKana","nickname","gender","age","chronoAge","role","ideology","childhood","childhoodCustom","adulthood","adulthoodCustom","publicFace","coreBelief","gap","complex","motivation","childEnv","turningPoint","trauma","trigger","relParty","stressType","fightPattern","glitterAffinity","stressResist","anarchiaReaction","habit","likesDislikes","weakness","memo"];
+  const fields = ["lastName","lastNameKana","firstName","firstNameKana","nickname","race","gender","age","chronoAge","role","ideology","childhood","childhoodCustom","adulthood","adulthoodCustom","publicFace","coreBelief","gap","complex","motivation","childEnv","turningPoint","trauma","trigger","relParty","stressType","fightPattern","glitterAffinity","stressResist","anarchiaReaction","habit","likesDislikes","weakness","memo"];
   let data = { skills: skillState, traits: [], avatar: "", faction: "" };
   fields.forEach(f => {
     const el = document.getElementById(f);
@@ -1095,7 +1096,7 @@ function gatherFormData() {
 }
 
 function applyData(data) {
-  const fields = ["lastName","lastNameKana","firstName","firstNameKana","nickname","gender","age","chronoAge","role","ideology","childhood","childhoodCustom","adulthood","adulthoodCustom","publicFace","coreBelief","gap","complex","motivation","childEnv","turningPoint","trauma","trigger","relParty","stressType","fightPattern","glitterAffinity","stressResist","anarchiaReaction","habit","likesDislikes","weakness","memo"];
+  const fields = ["lastName","lastNameKana","firstName","firstNameKana","nickname","race","gender","age","chronoAge","role","ideology","childhood","childhoodCustom","adulthood","adulthoodCustom","publicFace","coreBelief","gap","complex","motivation","childEnv","turningPoint","trauma","trigger","relParty","stressType","fightPattern","glitterAffinity","stressResist","anarchiaReaction","habit","likesDislikes","weakness","memo"];
   fields.forEach(f => {
     const el = document.getElementById(f);
     if (el) el.value = data[f] !== undefined ? data[f] : "";
@@ -1175,7 +1176,7 @@ function copyAIPrompt() {
 
 ## 1. 基本情報
 - 氏名: ${getVal("lastName")} (${getVal("lastNameKana")}) ${getVal("firstName")} (${getVal("firstNameKana")}) [呼び名: ${getVal("nickname")}]
-- 性別: ${getVal("gender") || "未設定"} / 年齢: ${getVal("age") || "未設定"}歳 (肉体年齢: ${getVal("chronoAge") || "未設定"}歳)
+- 種族: ${getVal("race") || "人間"} / 性別: ${getVal("gender") || "未設定"} / 年齢: ${getVal("age") || "未設定"}歳 (クロノ年齢: ${getVal("chronoAge") || "未設定"}歳)
 - 役割: ${getVal("role")} / 所属派閥: ${factionVal || "無所属"} / 思想: ${getVal("ideology")}
 - 生い立ち: 幼少期[${getBS("childhood")}] / 成年期[${getBS("adulthood")}]
 - 才能・特性: ${traitsText.join(", ") || "なし"}
