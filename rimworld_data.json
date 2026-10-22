@@ -2,7 +2,7 @@
   "char_1791897475208": {
     "skills": {
       "射撃": {
-        "userVal": 0,
+        "userVal": 5,
         "bsMod": 0,
         "passion": 0
       },
@@ -12,89 +12,90 @@
         "passion": 0
       },
       "社交": {
-        "userVal": 0,
+        "userVal": 5,
         "bsMod": 0,
         "passion": 0
       },
       "動物": {
-        "userVal": 0,
+        "userVal": 3,
         "bsMod": 0,
         "passion": 0
       },
       "医学": {
-        "userVal": 0,
+        "userVal": 3,
         "bsMod": 0,
         "passion": 0
       },
       "料理": {
-        "userVal": 0,
+        "userVal": 2,
         "bsMod": 0,
         "passion": 0
       },
       "建築": {
-        "userVal": 0,
+        "userVal": 4,
         "bsMod": 0,
         "passion": 0
       },
       "栽培": {
-        "userVal": 0,
+        "userVal": 5,
         "bsMod": 0,
         "passion": 0
       },
       "採掘": {
-        "userVal": 0,
+        "userVal": 1,
         "bsMod": 0,
         "passion": 0
       },
       "芸術": {
-        "userVal": 0,
+        "userVal": 1,
         "bsMod": 0,
         "passion": 0
       },
       "工芸": {
-        "userVal": 0,
+        "userVal": 2,
         "bsMod": 0,
         "passion": 0
       },
       "知力": {
-        "userVal": 0,
+        "userVal": 9,
         "bsMod": 0,
-        "passion": 0
+        "passion": 1
       }
     },
     "traits": [
-      "0",
-      "0",
+      "5",
+      "10",
       "0",
       "0"
     ],
     "avatar": "",
-    "faction": "",
-    "lastName": "霧雨",
-    "lastNameKana": "",
-    "firstName": "灰",
-    "firstNameKana": "",
-    "nickname": "カイ",
-    "gender": "",
-    "age": "",
-    "chronoAge": "",
-    "role": "",
+    "faction": "黒崎商事株式会社",
+    "lastName": "黒崎",
+    "lastNameKana": "Kurosaki",
+    "firstName": "歩人",
+    "firstNameKana": "Aruto",
+    "nickname": "アルト",
+    "race": "人間",
+    "gender": "男",
+    "age": "19",
+    "chronoAge": "19",
+    "role": "リーダー",
     "ideology": "",
-    "childhood": "",
-    "childhoodCustom": "",
-    "adulthood": "",
-    "adulthoodCustom": "",
-    "publicFace": "kusso",
-    "coreBelief": "",
-    "gap": "",
-    "complex": "",
+    "childhood": "直接入力 (カスタム)",
+    "childhoodCustom": "孤児",
+    "adulthood": "直接入力 (カスタム)",
+    "adulthoodCustom": "情報屋",
+    "publicFace": "知的そうで、穏やかなな性格にみられる。\n情報屋を営んでいただけあって、喋りが上手であり、論理的。\nだがおしゃべりというわけでもない。\n",
+    "coreBelief": "サイコパスであり、人の死や、動物を殺害するのに何のためらいもない。\n何なら弱肉強食が社会のあるべき姿だと思っている。\nまた、アンダーグラウンドで育ったため、法律やルールを守るのが苦手。",
+    "gap": "どんな時でも冷静に、論理的な判断を下すことができるが、倫理観に欠けてしまうぶぶんもある。\n社交は知的で論理的あるが、あくまで今までのパターンからこうすればうまくいくという社交の仕方をしているので、はたから見れば上手だが、人の心を理解することがにがてである。",
+    "complex": "自己評価は低め。\n自分には両親がいない。\nアングラで育ったことは別に気にしておらず何なら",
     "motivation": "",
-    "childEnv": "",
-    "turningPoint": "",
-    "trauma": "",
-    "trigger": "",
-    "relParty": "",
-    "stressType": "",
+    "childEnv": "幼少期を孤児として過ごし、両親の愛情を受けることなく育った。地球で有名なマフィアのボスに拾われ、幼少期からアンダーグラウンドな環境で育った。",
+    "turningPoint": "6歳の時、それまでは路地裏の奥の奥でネズミたちと一緒に、ごみ箱の残飯をあさったり、雑草を食べたりして上をしのぎ、雨水をすすって喉を潤していた。\nまさかいつも漁っていたゴミ箱の前でマフィアたちによる取引が行われるとは思ってもみなかった。\n殺される寸前でマフィアのボスが助けてくれた。",
+    "trauma": "本物の親の愛情というものに触れたことがない。\nほかの人が当たり前に知っている愛情を知らない。\n僕にはもう手に入らないものだろうか。\n",
+    "trigger": "他人に恋愛感情のようなものを抱いてしまったとき\n自分は親がいない分の愛情を他人で埋めようとしているのではないかと考えてしまう。",
+    "relParty": "仲間意識はたかく、自分なんかと仲良くしてくれてうれしいが、それ以上にならないように一線をひいている。\nアングラで生きてきた彼は、人はいずれ死ぬということをよく理解している。\nだからこそ、深入りをしたがらない。",
+    "stressType": "もともと家畜以下の生活をしていたため、衛生観念や、空腹などでストレスはほとんど感じない。あのころに比べたらましだなと思う。\nサイコパスであり、人の死や、動物を殺害することに何のためらいもない。\nむしろ弱肉強食が、あるべき社会の姿だと思っている。",
     "fightPattern": "",
     "glitterAffinity": "",
     "stressResist": "",
@@ -102,7 +103,7 @@
     "habit": "",
     "likesDislikes": "",
     "weakness": "",
-    "memo": "",
+    "memo": "拾ってくれたマフィアの組織の名前=グラスウェル\nボスの名前＝モイテズ・ヴァン・レオン",
     "id": "char_1791897475208"
   },
   "char_1791897853358": {
